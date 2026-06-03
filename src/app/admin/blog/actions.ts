@@ -1,11 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { slugify } from '@/lib/utils'
 
-export async function createBlogPost(prevState: { error: string } | null, formData: FormData) {
+export async function createBlogPost(prevState: { error?: string; success?: boolean } | null, formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
@@ -15,7 +14,6 @@ export async function createBlogPost(prevState: { error: string } | null, formDa
 
   const slug = slugify(title)
 
-  // Handle cover image upload
   let cover_image_url = ''
   const coverImage = formData.get('cover_image') as File
   if (coverImage && coverImage.size > 0) {
@@ -52,10 +50,10 @@ export async function createBlogPost(prevState: { error: string } | null, formDa
 
   revalidatePath('/admin/blog')
   revalidatePath('/')
-  redirect('/admin/blog')
+  return { success: true }
 }
 
-export async function updateBlogPost(id: string, prevState: { error: string } | null, formData: FormData) {
+export async function updateBlogPost(id: string, prevState: { error?: string; success?: boolean } | null, formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
@@ -97,7 +95,7 @@ export async function updateBlogPost(id: string, prevState: { error: string } | 
 
   revalidatePath('/admin/blog')
   revalidatePath('/')
-  redirect('/admin/blog')
+  return { success: true }
 }
 
 export async function deleteBlogPost(id: string) {
@@ -110,7 +108,7 @@ export async function deleteBlogPost(id: string) {
 
   revalidatePath('/admin/blog')
   revalidatePath('/')
-  redirect('/admin/blog')
+  return { success: true }
 }
 
 export async function toggleBlogStatus(id: string, currentStatus: string) {

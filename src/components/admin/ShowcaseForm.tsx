@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import type { ShowcaseItem } from '@/types'
 import { showcaseCategories } from '@/lib/constants'
 import Input from '@/components/ui/Input'
@@ -16,6 +17,14 @@ interface ShowcaseFormProps {
 
 export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
   const [state, formAction, isPending] = useActionState(action, null)
+  const router = useRouter()
+
+  // Redirect on success
+  useEffect(() => {
+    if (state?.success) {
+      router.push('/admin')
+    }
+  }, [state, router])
 
   return (
     <form action={formAction} className="space-y-8 max-w-4xl">
@@ -97,20 +106,12 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
           Media
         </h2>
 
-        {/* Cover Image */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-charcoal">Cover Image</label>
           {item?.cover_image_url && (
             <div className="relative w-48 h-32 rounded-lg overflow-hidden border border-gray-light mb-2">
-              <Image
-                src={item.cover_image_url}
-                alt="Current cover"
-                fill
-                className="object-cover"
-              />
-              <span className="absolute bottom-1 right-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">
-                Current
-              </span>
+              <Image src={item.cover_image_url} alt="Current cover" fill className="object-cover" />
+              <span className="absolute bottom-1 right-1 text-[10px] bg-black/50 text-white px-1.5 py-0.5 rounded">Current</span>
             </div>
           )}
           <input
@@ -139,29 +140,9 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
           Content Details
         </h2>
 
-        <Textarea
-          id="content_writing_sample"
-          name="content_writing_sample"
-          label="Content Writing Sample"
-          placeholder="Paste a sample of the content created for this project"
-          defaultValue={item?.content_writing_sample || ''}
-        />
-
-        <Textarea
-          id="media_buying_notes"
-          name="media_buying_notes"
-          label="Media Buying Notes"
-          placeholder="Ad spend, targeting, platform details, and strategy notes"
-          defaultValue={item?.media_buying_notes || ''}
-        />
-
-        <Textarea
-          id="event_planning_notes"
-          name="event_planning_notes"
-          label="Event Planning Notes"
-          placeholder="Event details, logistics, and planning notes"
-          defaultValue={item?.event_planning_notes || ''}
-        />
+        <Textarea id="content_writing_sample" name="content_writing_sample" label="Content Writing Sample" placeholder="Paste a sample of the content created for this project" defaultValue={item?.content_writing_sample || ''} />
+        <Textarea id="media_buying_notes" name="media_buying_notes" label="Media Buying Notes" placeholder="Ad spend, targeting, platform details, and strategy notes" defaultValue={item?.media_buying_notes || ''} />
+        <Textarea id="event_planning_notes" name="event_planning_notes" label="Event Planning Notes" placeholder="Event details, logistics, and planning notes" defaultValue={item?.event_planning_notes || ''} />
       </div>
 
       {/* Section: Results */}
@@ -170,30 +151,9 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
           Results & Details
         </h2>
 
-        <Textarea
-          id="results"
-          name="results"
-          label="Results & Metrics"
-          placeholder="Key results, KPIs, and measurable outcomes"
-          defaultValue={item?.results || ''}
-        />
-
-        <Input
-          id="tools_used"
-          name="tools_used"
-          label="Tools Used"
-          placeholder="e.g., Meta Ads Manager, Google Analytics, ManyChat (comma separated)"
-          defaultValue={item?.tools_used || ''}
-        />
-
-        <Textarea
-          id="full_case_study"
-          name="full_case_study"
-          label="Full Case Study"
-          placeholder="Detailed case study write-up with background, approach, and outcomes"
-          defaultValue={item?.full_case_study || ''}
-          className="min-h-[200px]"
-        />
+        <Textarea id="results" name="results" label="Results & Metrics" placeholder="Key results, KPIs, and measurable outcomes" defaultValue={item?.results || ''} />
+        <Input id="tools_used" name="tools_used" label="Tools Used" placeholder="e.g., Meta Ads Manager, Google Analytics, ManyChat (comma separated)" defaultValue={item?.tools_used || ''} />
+        <Textarea id="full_case_study" name="full_case_study" label="Full Case Study" placeholder="Detailed case study write-up with background, approach, and outcomes" defaultValue={item?.full_case_study || ''} className="min-h-[200px]" />
       </div>
 
       {/* Section: Status & Submit */}
@@ -203,9 +163,7 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
         </h2>
 
         <div className="space-y-1.5">
-          <label htmlFor="status" className="block text-sm font-medium text-charcoal">
-            Status
-          </label>
+          <label htmlFor="status" className="block text-sm font-medium text-charcoal">Status</label>
           <select
             id="status"
             name="status"
@@ -219,11 +177,7 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
 
         <div className="flex items-center gap-3 pt-2">
           <Button type="submit" disabled={isPending} size="lg">
-            {isPending
-              ? 'Saving...'
-              : item
-              ? 'Update Project'
-              : 'Create Project'}
+            {isPending ? 'Saving...' : item ? 'Update Project' : 'Create Project'}
           </Button>
           <Button type="button" variant="ghost" size="lg" onClick={() => window.history.back()}>
             Cancel

@@ -1,11 +1,10 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { slugify } from '@/lib/utils'
 
-export async function createShowcaseItem(prevState: { error: string } | null, formData: FormData) {
+export async function createShowcaseItem(prevState: { error?: string; success?: boolean } | null, formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
@@ -60,10 +59,10 @@ export async function createShowcaseItem(prevState: { error: string } | null, fo
 
   revalidatePath('/admin')
   revalidatePath('/')
-  redirect('/admin')
+  return { success: true }
 }
 
-export async function updateShowcaseItem(id: string, prevState: { error: string } | null, formData: FormData) {
+export async function updateShowcaseItem(id: string, prevState: { error?: string; success?: boolean } | null, formData: FormData) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
@@ -114,7 +113,7 @@ export async function updateShowcaseItem(id: string, prevState: { error: string 
 
   revalidatePath('/admin')
   revalidatePath('/')
-  redirect('/admin')
+  return { success: true }
 }
 
 export async function deleteShowcaseItem(id: string) {
@@ -122,7 +121,6 @@ export async function deleteShowcaseItem(id: string) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 
-  // Get the item first to clean up the image
   const { data: item } = await supabase
     .from('showcase_items')
     .select('cover_image_url')
@@ -130,7 +128,6 @@ export async function deleteShowcaseItem(id: string) {
     .single()
 
   if (item?.cover_image_url) {
-    // Extract file path from URL and delete from storage
     const url = new URL(item.cover_image_url)
     const pathParts = url.pathname.split('/showcase-images/')
     if (pathParts[1]) {
@@ -143,7 +140,7 @@ export async function deleteShowcaseItem(id: string) {
 
   revalidatePath('/admin')
   revalidatePath('/')
-  redirect('/admin')
+  return { success: true }
 }
 
 export async function toggleShowcaseStatus(id: string, currentStatus: string) {
