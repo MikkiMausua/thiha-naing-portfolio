@@ -39,12 +39,18 @@ export default async function HomePage() {
     .eq("status", "published")
     .order("created_at", { ascending: false });
 
-  // Fetch only published blog posts
-  const { data: blogPosts } = await supabase
-    .from("blog_posts")
-    .select("*")
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  // Fetch only published blog posts (graceful if table doesn't exist yet)
+  let blogPosts = null;
+  try {
+    const { data } = await supabase
+      .from("blog_posts")
+      .select("*")
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+    blogPosts = data;
+  } catch {
+    blogPosts = null;
+  }
 
   return (
     <>
