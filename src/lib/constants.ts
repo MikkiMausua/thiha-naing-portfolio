@@ -9,10 +9,11 @@ export const siteConfig = {
 
 export const navLinks = [
   { label: 'About', href: '#about' },
+  { label: 'Showcase', href: '#showcase' },
   { label: 'Experience', href: '#experience' },
   { label: 'Services', href: '#services' },
   { label: 'Skills', href: '#skills' },
-  { label: 'Showcase', href: '#showcase' },
+  { label: 'Blog', href: '#blog' },
   { label: 'Contact', href: '#contact' },
 ]
 

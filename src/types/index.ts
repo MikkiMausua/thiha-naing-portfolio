@@ -43,3 +43,16 @@ export interface Skill {
   skill_name: string;
   sort_order: number;
 }
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  cover_image_url: string;
+  tags: string;
+  status: 'draft' | 'published';
+  created_at: string;
+  updated_at: string;
+}
