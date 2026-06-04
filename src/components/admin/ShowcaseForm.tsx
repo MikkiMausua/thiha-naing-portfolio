@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ShowcaseItem } from '@/types'
 import { showcaseCategories } from '@/lib/constants'
@@ -18,6 +18,7 @@ interface ShowcaseFormProps {
 export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
   const [state, formAction, isPending] = useActionState(action, null)
   const router = useRouter()
+  const [clientError, setClientError] = useState<string | null>(null)
 
   // Redirect on success
   useEffect(() => {
@@ -26,12 +27,23 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
     }
   }, [state, router])
 
+  // Wrap formAction to validate file size before submitting
+  const handleSubmit = (formData: FormData) => {
+    setClientError(null)
+    const file = formData.get('cover_image') as File
+    if (file && file.size > 4 * 1024 * 1024) {
+      setClientError('Image must be under 4MB. Please compress or resize the image before uploading.')
+      return
+    }
+    formAction(formData)
+  }
+
   return (
-    <form action={formAction} className="space-y-8 max-w-4xl">
+    <form action={handleSubmit} className="space-y-8 max-w-4xl">
       {/* Error display */}
-      {state?.error && (
+      {(state?.error || clientError) && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
-          {state.error}
+          {clientError || state?.error}
         </div>
       )}
 
