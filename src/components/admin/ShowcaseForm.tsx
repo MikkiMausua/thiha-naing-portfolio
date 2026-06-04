@@ -9,6 +9,7 @@ import Textarea from '@/components/ui/Textarea'
 import Button from '@/components/ui/Button'
 import Image from 'next/image'
 import { deleteGalleryImage } from '@/app/admin/actions'
+import { createClient as createBrowserClient } from '@/utils/supabase/client'
 
 interface ShowcaseFormProps {
   item?: ShowcaseItem
@@ -21,6 +22,10 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
   const [state, formAction, isPending] = useActionState(action, null)
   const router = useRouter()
   const [clientError, setClientError] = useState<string | null>(null)
+  
+  // Client-side uploading status
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<string | null>(null)
 
   const [localGallery, setLocalGallery] = useState<GalleryImage[]>(existingGallery)
   const [newGalleryFiles, setNewGalleryFiles] = useState<{ id: string; file: File; preview: string; caption: string }[]>([])
@@ -108,37 +113,104 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
     }
   }, [newGalleryFiles])
 
-  // Wrap formAction to validate file size before submitting
-  const handleSubmit = (formData: FormData) => {
+  // Direct client-side upload to Supabase to bypass Vercel serverless request limits
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setClientError(null)
-    
-    // Validate cover image size
-    const coverFile = formData.get('cover_image') as File
-    if (coverFile && coverFile.size > 4 * 1024 * 1024) {
-      setClientError('Cover image must be under 4MB. Please compress or resize the image before uploading.')
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-      return
-    }
+    setIsSubmitting(true)
 
-    // Validate new gallery images size
-    for (const item of newGalleryFiles) {
-      if (item.file.size > 4 * 1024 * 1024) {
-        setClientError(`Gallery image "${item.file.name}" exceeds the 4MB limit.`)
-        window.scrollTo({ top: 0, behavior: 'smooth' })
-        return
+    const formData = new FormData(e.currentTarget)
+    const supabase = createBrowserClient()
+
+    try {
+      // 1. Upload Cover Image (if a new file is chosen)
+      let cover_image_url = item?.cover_image_url || ''
+      const coverFile = formData.get('cover_image') as File
+      if (coverFile && coverFile.size > 0) {
+        if (coverFile.size > 4 * 1024 * 1024) {
+          setClientError('Cover image must be under 4MB.')
+          setIsSubmitting(false)
+          return
+        }
+        setUploadProgress('Uploading cover image...')
+        const fileExt = coverFile.name.split('.').pop()
+        const filePath = `cover-${Date.now()}.${fileExt}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('showcase-images')
+          .upload(filePath, coverFile, { cacheControl: '3600', upsert: false })
+
+        if (uploadError) {
+          setClientError(`Cover image upload failed: ${uploadError.message}`)
+          setIsSubmitting(false)
+          return
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('showcase-images')
+          .getPublicUrl(filePath)
+
+        cover_image_url = publicUrl
       }
+
+      // 2. Upload New Gallery Images
+      const uploadedGalleryItems: { image_url: string; caption: string | null }[] = []
+      
+      for (let i = 0; i < newGalleryFiles.length; i++) {
+        const galleryItem = newGalleryFiles[i]
+        if (galleryItem.file.size > 4 * 1024 * 1024) {
+          setClientError(`Gallery image "${galleryItem.file.name}" exceeds the 4MB limit.`)
+          setIsSubmitting(false)
+          return
+        }
+        
+        setUploadProgress(`Uploading gallery image ${i + 1} of ${newGalleryFiles.length}...`)
+        
+        const fileExt = galleryItem.file.name.split('.').pop()
+        const filePath = `gallery/${Date.now()}-${i}.${fileExt}`
+
+        const { error: uploadError } = await supabase.storage
+          .from('showcase-images')
+          .upload(filePath, galleryItem.file, { cacheControl: '3600', upsert: false })
+
+        if (uploadError) {
+          setClientError(`Gallery image upload failed: ${uploadError.message}`)
+          setIsSubmitting(false)
+          return
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('showcase-images')
+          .getPublicUrl(filePath)
+
+        uploadedGalleryItems.push({
+          image_url: publicUrl,
+          caption: galleryItem.caption || null
+        })
+      }
+
+      setUploadProgress('Saving project details...')
+      
+      // Setup payload values
+      formData.set('cover_image_url', cover_image_url)
+      formData.set('layout_format', selectedLayout)
+      formData.set('full_case_study', caseStudyValue)
+      formData.set('results', resultsValue)
+      
+      // Delete large binaries from being submitted to the Server Action
+      formData.delete('cover_image')
+      formData.delete('gallery_images')
+      
+      formData.set('gallery_json', JSON.stringify(uploadedGalleryItems))
+
+      // Trigger the server action
+      formAction(formData)
+    } catch (err) {
+      setClientError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setIsSubmitting(false)
+      setUploadProgress(null)
     }
-
-    // Append layouts, new gallery images and captions
-    formData.set('layout_format', selectedLayout)
-    formData.set('full_case_study', caseStudyValue)
-    formData.set('results', resultsValue)
-    newGalleryFiles.forEach((item) => {
-      formData.append('gallery_images', item.file)
-      formData.append('gallery_captions', item.caption)
-    })
-
-    formAction(formData)
   }
 
   // Layout-based visibility settings
@@ -147,7 +219,7 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
   const showFullCaseStudy = selectedLayout !== 'gallery'
 
   return (
-    <form action={handleSubmit} className="space-y-8 max-w-4xl">
+    <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
       {/* Error display */}
       {(state?.error || clientError) && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
@@ -446,8 +518,10 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
         </div>
 
         <div className="flex items-center gap-3 pt-2">
-          <Button type="submit" disabled={isPending} size="lg">
-            {isPending ? 'Saving...' : item ? 'Update Project' : 'Create Project'}
+          <Button type="submit" disabled={isPending || isSubmitting} size="lg">
+            {isPending || isSubmitting
+              ? uploadProgress || 'Saving...'
+              : item ? 'Update Project' : 'Create Project'}
           </Button>
           <Button type="button" variant="ghost" size="lg" onClick={() => window.history.back()}>
             Cancel
