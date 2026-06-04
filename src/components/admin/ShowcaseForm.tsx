@@ -26,6 +26,10 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
   const [newGalleryFiles, setNewGalleryFiles] = useState<{ id: string; file: File; preview: string; caption: string }[]>([])
   const [selectedLayout, setSelectedLayout] = useState<'standard' | 'gallery' | 'case-study' | 'minimal'>(item?.layout_format || 'standard')
 
+  // Controlled states for templatable fields
+  const [caseStudyValue, setCaseStudyValue] = useState(item?.full_case_study || '')
+  const [resultsValue, setResultsValue] = useState(item?.results || '')
+
   // Sync state if existingGallery changes
   useEffect(() => {
     setLocalGallery(existingGallery)
@@ -74,6 +78,29 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
     }
   }
 
+  // Auto-fill template values based on chosen layout format
+  const handleLoadTemplate = () => {
+    let studyTemplate = ''
+    let resultsTemplate = ''
+
+    if (selectedLayout === 'case-study') {
+      studyTemplate = `## 1. Project Background & Challenge\n[Explain the client's problem, industry context, and objectives here...]\n\n## 2. Strategy & Approach\n[Detail the planning, target audience, channels selected, and strategic decisions...]\n\n## 3. Implementation & Execution\n[How the campaigns or designs were launched, copy samples, and advertising setup...]\n\n## 4. Key Lessons & Takeaways\n[What worked well, what was optimized, and how it helps future campaigns...]`
+      resultsTemplate = `- **Total Ad Spend**: $X,XXX\n- **Cost per Lead (CPL)**: $X.XX (XX% reduction)\n- **Return on Ad Spend (ROAS)**: X.Xx\n- **Total Conversions**: X,XXX leads/sales generated\n- **SEO Organic Traffic Growth**: +XX% in 30 days`
+    } else if (selectedLayout === 'standard' || selectedLayout === 'minimal') {
+      studyTemplate = `## Summary\nA quick review of the project and key takeaways.\n\n## Lessons Learned\nWhat worked well and how it helps future campaigns.`
+      resultsTemplate = `- Metric 1: Value\n- Metric 2: Value\n- Outcome: Description`
+    }
+
+    if (studyTemplate || resultsTemplate) {
+      const hasExisting = caseStudyValue.trim() || resultsValue.trim()
+      if (hasExisting && !confirm('Loading a layout template will overwrite your current Case Study and Results texts. Do you want to proceed?')) {
+        return
+      }
+      if (studyTemplate) setCaseStudyValue(studyTemplate)
+      if (resultsTemplate) setResultsValue(resultsTemplate)
+    }
+  }
+
   // Clean up object URLs on unmount
   useEffect(() => {
     return () => {
@@ -104,6 +131,8 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
 
     // Append layouts, new gallery images and captions
     formData.set('layout_format', selectedLayout)
+    formData.set('full_case_study', caseStudyValue)
+    formData.set('results', resultsValue)
     newGalleryFiles.forEach((item) => {
       formData.append('gallery_images', item.file)
       formData.append('gallery_captions', item.caption)
@@ -111,6 +140,11 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
 
     formAction(formData)
   }
+
+  // Layout-based visibility settings
+  const showCoverImage = selectedLayout !== 'minimal'
+  const showContentNotes = selectedLayout === 'standard'
+  const showFullCaseStudy = selectedLayout !== 'gallery'
 
   return (
     <form action={handleSubmit} className="space-y-8 max-w-4xl">
@@ -224,7 +258,7 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
       </div>
 
       {/* Section: Media */}
-      <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+      <div className={`bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5 ${showCoverImage ? '' : 'hidden'}`}>
         <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
           Media
         </h2>
@@ -341,7 +375,7 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
       </div>
 
       {/* Section: Content */}
-      <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+      <div className={`bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5 ${showContentNotes ? '' : 'hidden'}`}>
         <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
           Content Details
         </h2>
@@ -351,15 +385,45 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
         <Textarea id="event_planning_notes" name="event_planning_notes" label="Event Planning Notes" placeholder="Event details, logistics, and planning notes" defaultValue={item?.event_planning_notes || ''} />
       </div>
 
-      {/* Section: Results */}
+      {/* Section: Results & Details */}
       <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
-          Results & Details
-        </h2>
+        <div className="flex justify-between items-center border-b border-gray-light/40 pb-3">
+          <h2 className="text-lg font-semibold text-navy">
+            Results &amp; Details
+          </h2>
+          {selectedLayout !== 'gallery' && (
+            <button
+              type="button"
+              onClick={handleLoadTemplate}
+              className="text-xs font-semibold text-blue hover:text-navy px-3 py-1.5 bg-blue/10 hover:bg-blue/20 rounded-lg transition-all cursor-pointer flex items-center gap-1"
+            >
+              ✨ Use Layout Template Outline
+            </button>
+          )}
+        </div>
 
-        <Textarea id="results" name="results" label="Results & Metrics" placeholder="Key results, KPIs, and measurable outcomes" defaultValue={item?.results || ''} />
+        <Textarea 
+          id="results" 
+          name="results" 
+          label="Results &amp; Metrics" 
+          placeholder="Key results, KPIs, and measurable outcomes" 
+          value={resultsValue}
+          onChange={(e) => setResultsValue(e.target.value)}
+        />
+        
         <Input id="tools_used" name="tools_used" label="Tools Used" placeholder="e.g., Meta Ads Manager, Google Analytics, ManyChat (comma separated)" defaultValue={item?.tools_used || ''} />
-        <Textarea id="full_case_study" name="full_case_study" label="Full Case Study" placeholder="Detailed case study write-up with background, approach, and outcomes" defaultValue={item?.full_case_study || ''} className="min-h-[200px]" />
+        
+        <div className={showFullCaseStudy ? '' : 'hidden'}>
+          <Textarea 
+            id="full_case_study" 
+            name="full_case_study" 
+            label="Full Case Study" 
+            placeholder="Detailed case study write-up with background, approach, and outcomes" 
+            value={caseStudyValue}
+            onChange={(e) => setCaseStudyValue(e.target.value)}
+            className="min-h-[200px]" 
+          />
+        </div>
       </div>
 
       {/* Section: Status & Submit */}
