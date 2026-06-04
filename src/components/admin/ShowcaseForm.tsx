@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import type { ShowcaseItem, GalleryImage } from '@/types'
-import { showcaseCategories, layoutFormats } from '@/lib/constants'
+import { showcaseCategories } from '@/lib/constants'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
 import Button from '@/components/ui/Button'
@@ -29,11 +29,17 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
 
   const [localGallery, setLocalGallery] = useState<GalleryImage[]>(existingGallery)
   const [newGalleryFiles, setNewGalleryFiles] = useState<{ id: string; file: File; preview: string; caption: string }[]>([])
-  const [selectedLayout, setSelectedLayout] = useState<'standard' | 'gallery' | 'case-study' | 'minimal'>(item?.layout_format || 'standard')
+  
+  // Category selection and warning states
+  const [selectedCategory, setSelectedCategory] = useState(item?.category || '')
+  const [showCategoryWarning, setShowCategoryWarning] = useState(false)
 
-  // Controlled states for templatable fields
-  const [caseStudyValue, setCaseStudyValue] = useState(item?.full_case_study || '')
+  // Category details JSON state
+  const [detailsState, setDetailsState] = useState<Record<string, any>>(item?.category_details || {})
+
+  // Controlled states for generic fallbacks
   const [resultsValue, setResultsValue] = useState(item?.results || '')
+  const [caseStudyValue, setCaseStudyValue] = useState(item?.full_case_study || '')
 
   // Sync state if existingGallery changes
   useEffect(() => {
@@ -46,6 +52,26 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
       router.push('/admin')
     }
   }, [state, router])
+
+  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const nextVal = e.target.value
+    if (selectedCategory && nextVal !== selectedCategory) {
+      setShowCategoryWarning(true)
+      // Hide warning automatically after 5 seconds
+      setTimeout(() => setShowCategoryWarning(false), 6000)
+    }
+    setSelectedCategory(nextVal)
+  }
+
+  const handleDetailFieldChange = (categoryKey: string, fieldName: string, value: string) => {
+    setDetailsState(prev => ({
+      ...prev,
+      [categoryKey]: {
+        ...(prev[categoryKey] || {}),
+        [fieldName]: value
+      }
+    }))
+  }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files) return
@@ -80,29 +106,6 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
       setLocalGallery(prev => prev.filter(img => img.id !== imageId))
     } else {
       setClientError('Failed to delete gallery image: ' + result.error)
-    }
-  }
-
-  // Auto-fill template values based on chosen layout format
-  const handleLoadTemplate = () => {
-    let studyTemplate = ''
-    let resultsTemplate = ''
-
-    if (selectedLayout === 'case-study') {
-      studyTemplate = `## 1. Project Background & Challenge\n[Explain the client's problem, industry context, and objectives here...]\n\n## 2. Strategy & Approach\n[Detail the planning, target audience, channels selected, and strategic decisions...]\n\n## 3. Implementation & Execution\n[How the campaigns or designs were launched, copy samples, and advertising setup...]\n\n## 4. Key Lessons & Takeaways\n[What worked well, what was optimized, and how it helps future campaigns...]`
-      resultsTemplate = `- **Total Ad Spend**: $X,XXX\n- **Cost per Lead (CPL)**: $X.XX (XX% reduction)\n- **Return on Ad Spend (ROAS)**: X.Xx\n- **Total Conversions**: X,XXX leads/sales generated\n- **SEO Organic Traffic Growth**: +XX% in 30 days`
-    } else if (selectedLayout === 'standard' || selectedLayout === 'minimal') {
-      studyTemplate = `## Summary\nA quick review of the project and key takeaways.\n\n## Lessons Learned\nWhat worked well and how it helps future campaigns.`
-      resultsTemplate = `- Metric 1: Value\n- Metric 2: Value\n- Outcome: Description`
-    }
-
-    if (studyTemplate || resultsTemplate) {
-      const hasExisting = caseStudyValue.trim() || resultsValue.trim()
-      if (hasExisting && !confirm('Loading a layout template will overwrite your current Case Study and Results texts. Do you want to proceed?')) {
-        return
-      }
-      if (studyTemplate) setCaseStudyValue(studyTemplate)
-      if (resultsTemplate) setResultsValue(resultsTemplate)
     }
   }
 
@@ -193,9 +196,7 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
       
       // Setup payload values
       formData.set('cover_image_url', cover_image_url)
-      formData.set('layout_format', selectedLayout)
-      formData.set('full_case_study', caseStudyValue)
-      formData.set('results', resultsValue)
+      formData.set('category_json', JSON.stringify(detailsState))
       
       // Delete large binaries from being submitted to the Server Action
       formData.delete('cover_image')
@@ -213,10 +214,19 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
     }
   }
 
-  // Layout-based visibility settings
-  const showCoverImage = selectedLayout !== 'minimal'
-  const showContentNotes = selectedLayout === 'standard'
-  const showFullCaseStudy = selectedLayout !== 'gallery'
+  // Determine category key for nested JSON details
+  const getCategoryKey = (cat: string) => {
+    const c = cat.toLowerCase().trim()
+    if (c.includes('writing') || c.includes('content')) return 'contentWriting'
+    if (c.includes('buying') || c.includes('media') || c.includes('ad')) return 'mediaBuying'
+    if (c.includes('event') || c.includes('planning')) return 'eventPlanning'
+    if (c.includes('social') || c.includes('media')) return 'socialMedia'
+    if (c.includes('auto') || c.includes('automation') || c.includes('workflow')) return 'automation'
+    return null
+  }
+
+  const categoryKey = getCategoryKey(selectedCategory)
+  const categoryDetails = categoryKey ? (detailsState[categoryKey] || {}) : {}
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-4xl">
@@ -224,6 +234,13 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
       {(state?.error || clientError) && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-sm">
           {clientError || state?.error}
+        </div>
+      )}
+
+      {/* Category Change Warning */}
+      {showCategoryWarning && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 text-xs">
+          ⚠️ <strong>Notice:</strong> Switching category will change the layout structure and hide some category-specific fields. Already entered data will be preserved, but will only render in the selected category's layout.
         </div>
       )}
 
@@ -250,12 +267,14 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="space-y-1.5">
             <label htmlFor="category" className="block text-sm font-medium text-charcoal">
-              Category
+              Category *
             </label>
             <select
               id="category"
               name="category"
-              defaultValue={item?.category || ''}
+              value={selectedCategory}
+              onChange={handleCategoryChange}
+              required
               className="block w-full rounded-lg border border-gray-light bg-white px-4 py-2.5 text-charcoal transition-colors duration-200 focus:border-blue focus:outline-none focus:ring-2 focus:ring-blue/20"
             >
               <option value="">Select a category</option>
@@ -292,45 +311,547 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
         />
       </div>
 
-      {/* Section: Layout Format */}
-      <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
-          Layout Format
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-          {layoutFormats.map((layout) => {
-            const isSelected = selectedLayout === layout.value
-            return (
-              <button
-                key={layout.value}
-                type="button"
-                onClick={() => setSelectedLayout(layout.value as any)}
-                className={`flex flex-col text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
-                  isSelected
-                    ? 'border-blue bg-blue/5'
-                    : 'border-gray-light hover:border-gray'
-                }`}
+      {/* Section: Dynamic Category Specific Details */}
+      {categoryKey === 'contentWriting' && (
+        <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+          <div className="border-b border-gray-light/40 pb-3">
+            <h2 className="text-lg font-semibold text-navy">Content Writing Fields</h2>
+            <p className="text-xs text-gray mt-0.5">Custom configurations for copywriting, articles, brand storytelling, and email copy.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-charcoal">Content Type</label>
+              <select
+                value={categoryDetails.contentType || ''}
+                onChange={(e) => handleDetailFieldChange('contentWriting', 'contentType', e.target.value)}
+                className="block w-full rounded-lg border border-gray-light bg-white px-4 py-2.5 text-charcoal focus:border-blue focus:outline-none"
               >
-                <span className="font-semibold text-navy text-sm">{layout.label}</span>
-                <span className="text-xs text-gray mt-1 leading-normal">
-                  {layout.description}
-                </span>
-                <input
-                  type="radio"
-                  name="layout_format"
-                  value={layout.value}
-                  checked={isSelected}
-                  onChange={() => {}}
-                  className="sr-only"
-                />
-              </button>
-            )
-          })}
+                <option value="">Select Content Type</option>
+                <option value="Article">Article</option>
+                <option value="Social Caption">Social Caption</option>
+                <option value="Campaign Copy">Campaign Copy</option>
+                <option value="Email">Email</option>
+                <option value="Script">Script</option>
+                <option value="SEO Content">SEO Content</option>
+                <option value="Brand Story">Brand Story</option>
+              </select>
+            </div>
+            <Input
+              label="Client / Brand Type"
+              placeholder="e.g., E-commerce startup, Tech company"
+              value={categoryDetails.clientBrandType || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'clientBrandType', e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Target Audience"
+              placeholder="e.g., Gen-Z, B2B executives"
+              value={categoryDetails.targetAudience || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'targetAudience', e.target.value)}
+            />
+            <Input
+              label="Tone of Voice"
+              placeholder="e.g., Conversational, professional, educational"
+              value={categoryDetails.toneOfVoice || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'toneOfVoice', e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Content Goal"
+              placeholder="e.g., Drive conversions, improve domain authority"
+              value={categoryDetails.contentGoal || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'contentGoal', e.target.value)}
+            />
+            <Input
+              label="Distribution Channel"
+              placeholder="e.g., Website blog, newsletter list, FB page"
+              value={categoryDetails.distributionChannel || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'distributionChannel', e.target.value)}
+            />
+          </div>
+
+          <Input
+            label="Key Message"
+            placeholder="What was the main core message/hook of the content?"
+            value={categoryDetails.keyMessage || ''}
+            onChange={(e) => handleDetailFieldChange('contentWriting', 'keyMessage', e.target.value)}
+          />
+
+          <Textarea
+            label="Writing Samples / Copy Content"
+            placeholder="Paste your writing sample, article intro, script, or campaign copy here..."
+            value={categoryDetails.writingSamples || ''}
+            onChange={(e) => handleDetailFieldChange('contentWriting', 'writingSamples', e.target.value)}
+            className="min-h-[160px]"
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Textarea
+              label="Before Copy (If applicable)"
+              placeholder="Original headline/text before editing"
+              value={categoryDetails.beforeCopy || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'beforeCopy', e.target.value)}
+              className="min-h-[100px]"
+            />
+            <Textarea
+              label="After Copy (If applicable)"
+              placeholder="Your revised headline/text version"
+              value={categoryDetails.afterCopy || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'afterCopy', e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Performance Metrics (If available)"
+              placeholder="e.g., 45% open rate, ranked #1 for keyword"
+              value={categoryDetails.performanceMetrics || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'performanceMetrics', e.target.value)}
+            />
+            <Input
+              label="CTA Outcome"
+              placeholder="e.g., Led to 500+ signups, 20% sales uplift"
+              value={categoryDetails.ctaOutcome || ''}
+              onChange={(e) => handleDetailFieldChange('contentWriting', 'ctaOutcome', e.target.value)}
+            />
+          </div>
         </div>
-      </div>
+      )}
+
+      {categoryKey === 'mediaBuying' && (
+        <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+          <div className="border-b border-gray-light/40 pb-3">
+            <h2 className="text-lg font-semibold text-navy">Media Buying Fields</h2>
+            <p className="text-xs text-gray mt-0.5">Track ad spends, CPMs, CTRs, optimization strategies, and campaign dashboards.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Input
+              label="Ad Platform"
+              placeholder="e.g., Meta Ads, Google Ads"
+              value={categoryDetails.platform || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'platform', e.target.value)}
+            />
+            <Input
+              label="Campaign Objective"
+              placeholder="e.g., Sales Conversions, Leads"
+              value={categoryDetails.campaignObjective || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'campaignObjective', e.target.value)}
+            />
+            <Input
+              label="Date Range"
+              placeholder="e.g., Jan 2026 - Mar 2026"
+              value={categoryDetails.dateRange || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'dateRange', e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Input
+              label="Total Spend"
+              placeholder="e.g., $15,000"
+              value={categoryDetails.totalSpend || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'totalSpend', e.target.value)}
+            />
+            <Input
+              label="Impressions"
+              placeholder="e.g., 2.4 Million"
+              value={categoryDetails.impressions || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'impressions', e.target.value)}
+            />
+            <Input
+              label="Reach"
+              placeholder="e.g., 1.8 Million"
+              value={categoryDetails.reach || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'reach', e.target.value)}
+            />
+            <Input
+              label="Clicks"
+              placeholder="e.g., 45,000"
+              value={categoryDetails.clicks || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'clicks', e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Input
+              label="CTR (%)"
+              placeholder="e.g., 2.34%"
+              value={categoryDetails.ctr || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'ctr', e.target.value)}
+            />
+            <Input
+              label="CPM"
+              placeholder="e.g., $6.25"
+              value={categoryDetails.cpm || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'cpm', e.target.value)}
+            />
+            <Input
+              label="CPC"
+              placeholder="e.g., $0.33"
+              value={categoryDetails.cpc || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'cpc', e.target.value)}
+            />
+            <Input
+              label="ROAS (Leave empty if unverified)"
+              placeholder="e.g., 3.8x"
+              value={categoryDetails.roas || ''}
+              onChange={(e) => handleDetailFieldChange('mediaBuying', 'roas', e.target.value)}
+            />
+          </div>
+
+          <Input
+            label="Conversions (Leads / Messages / Purchases)"
+            placeholder="e.g., 1,200 Purchases, 3,400 leads"
+            value={categoryDetails.leadsMessagesPurchases || ''}
+            onChange={(e) => handleDetailFieldChange('mediaBuying', 'leadsMessagesPurchases', e.target.value)}
+          />
+
+          <Textarea
+            label="Audience &amp; Targeting Strategy"
+            placeholder="Describe your target audiences, lookalikes, interests, retargeting setup..."
+            value={categoryDetails.audienceStrategy || ''}
+            onChange={(e) => handleDetailFieldChange('mediaBuying', 'audienceStrategy', e.target.value)}
+          />
+
+          <Textarea
+            label="Creative Strategy"
+            placeholder="Describe creative direction, hooks, best-performing visuals/videos..."
+            value={categoryDetails.creativeStrategy || ''}
+            onChange={(e) => handleDetailFieldChange('mediaBuying', 'creativeStrategy', e.target.value)}
+          />
+
+          <Textarea
+            label="Optimization Approach"
+            placeholder="Detail custom optimizations: scaling, budget optimization (CBO/ABO), bid tactics..."
+            value={categoryDetails.optimizationApproach || ''}
+            onChange={(e) => handleDetailFieldChange('mediaBuying', 'optimizationApproach', e.target.value)}
+          />
+
+          <Textarea
+            label="Reporting Notes / Analysis"
+            placeholder="Insights from reporting, customer journey analyses..."
+            value={categoryDetails.reportingNotes || ''}
+            onChange={(e) => handleDetailFieldChange('mediaBuying', 'reportingNotes', e.target.value)}
+          />
+        </div>
+      )}
+
+      {categoryKey === 'eventPlanning' && (
+        <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+          <div className="border-b border-gray-light/40 pb-3">
+            <h2 className="text-lg font-semibold text-navy">Event Planning Fields</h2>
+            <p className="text-xs text-gray mt-0.5">Recap event timelines, attendee count statistics, venues, and team responsibilities.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Event Name"
+              placeholder="e.g., Tech Startup Conference 2026"
+              value={categoryDetails.eventName || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'eventName', e.target.value)}
+            />
+            <Input
+              label="Event Type"
+              placeholder="e.g., Corporate Conference, Concert, Webinar"
+              value={categoryDetails.eventType || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'eventType', e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Input
+              label="Event Date"
+              placeholder="e.g., March 15, 2026"
+              value={categoryDetails.eventDate || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'eventDate', e.target.value)}
+            />
+            <Input
+              label="Venue Location"
+              placeholder="e.g., Lotte Hotel Hall, Yangon"
+              value={categoryDetails.venue || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'venue', e.target.value)}
+            />
+            <Input
+              label="Attendee Count"
+              placeholder="e.g., 500+ Attendees"
+              value={categoryDetails.attendeeCount || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'attendeeCount', e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Organizer / Sponsor Brand"
+              placeholder="e.g., Myanmar Tech Association"
+              value={categoryDetails.organizerBrand || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'organizerBrand', e.target.value)}
+            />
+            <Input
+              label="Vendors &amp; Partners"
+              placeholder="e.g., JCGV Catering, Lighting Partners"
+              value={categoryDetails.vendorsPartners || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'vendorsPartners', e.target.value)}
+            />
+          </div>
+
+          <Textarea
+            label="My Responsibilities (One per line)"
+            placeholder="Manage catering contracts&#10;Coordinate lighting crew&#10;Design venue floor plan..."
+            value={categoryDetails.myResponsibilities || ''}
+            onChange={(e) => handleDetailFieldChange('eventPlanning', 'myResponsibilities', e.target.value)}
+            className="min-h-[100px]"
+          />
+
+          <Textarea
+            label="Event Objective"
+            placeholder="What was the main purpose of organizing the event?"
+            value={categoryDetails.eventObjective || ''}
+            onChange={(e) => handleDetailFieldChange('eventPlanning', 'eventObjective', e.target.value)}
+          />
+
+          <Textarea
+            label="Planning Scope"
+            placeholder="Details about budgeting, scheduling, marketing plan, resource allocations..."
+            value={categoryDetails.planningScope || ''}
+            onChange={(e) => handleDetailFieldChange('eventPlanning', 'planningScope', e.target.value)}
+          />
+
+          <Textarea
+            label="Run of Show Timeline (Format: Time - Details, one per line)"
+            placeholder="08:00 AM - Registrations open&#10;09:00 AM - Keynote speaker start&#10;12:00 PM - Buffet Lunch networking..."
+            value={categoryDetails.timelineRunOfShow || ''}
+            onChange={(e) => handleDetailFieldChange('eventPlanning', 'timelineRunOfShow', e.target.value)}
+            className="min-h-[140px]"
+          />
+
+          <Textarea
+            label="Key Deliverables"
+            placeholder="What were the core assets, program flow sheets, invitation cards designed?"
+            value={categoryDetails.deliverables || ''}
+            onChange={(e) => handleDetailFieldChange('eventPlanning', 'deliverables', e.target.value)}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Textarea
+              label="Event Outcome"
+              placeholder="Client feedback, visitor satisfaction, qualitative review..."
+              value={categoryDetails.eventOutcome || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'eventOutcome', e.target.value)}
+              className="min-h-[100px]"
+            />
+            <Textarea
+              label="Challenges Solved"
+              placeholder="What logical or unexpected problems arose and how did you solve them?"
+              value={categoryDetails.challengesSolved || ''}
+              onChange={(e) => handleDetailFieldChange('eventPlanning', 'challengesSolved', e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+        </div>
+      )}
+
+      {categoryKey === 'socialMedia' && (
+        <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+          <div className="border-b border-gray-light/40 pb-3">
+            <h2 className="text-lg font-semibold text-navy">Social Media Fields</h2>
+            <p className="text-xs text-gray mt-0.5">Capture page management metrics, content pillars, publishing calendar notes, and engagement.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Input
+              label="Platform Channel"
+              placeholder="e.g., Facebook Page, Instagram, LinkedIn"
+              value={categoryDetails.platform || ''}
+              onChange={(e) => handleDetailFieldChange('socialMedia', 'platform', e.target.value)}
+            />
+            <Input
+              label="Campaign / Page Type"
+              placeholder="e.g., Business page growth, product launch campaign"
+              value={categoryDetails.campaignPageType || ''}
+              onChange={(e) => handleDetailFieldChange('socialMedia', 'campaignPageType', e.target.value)}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Input
+              label="Posting Frequency"
+              placeholder="e.g., 3 posts per week"
+              value={categoryDetails.postingFrequency || ''}
+              onChange={(e) => handleDetailFieldChange('socialMedia', 'postingFrequency', e.target.value)}
+            />
+            <Input
+              label="Content Formats"
+              placeholder="e.g., Reels, Carousels, Short videos"
+              value={categoryDetails.contentFormats || ''}
+              onChange={(e) => handleDetailFieldChange('socialMedia', 'contentFormats', e.target.value)}
+            />
+            <Input
+              label="Brand Voice"
+              placeholder="e.g., Humorous, authoritative, friendly"
+              value={categoryDetails.brandVoice || ''}
+              onChange={(e) => handleDetailFieldChange('socialMedia', 'brandVoice', e.target.value)}
+            />
+          </div>
+
+          <Textarea
+            label="Content Pillars (Format: Pillar Name - Description, one per line)"
+            placeholder="Educational - Tips on growth marketing&#10;Behind-the-scenes - Showcase team culture&#10;Promotional - Feature service package discounts..."
+            value={categoryDetails.contentPillars || ''}
+            onChange={(e) => handleDetailFieldChange('socialMedia', 'contentPillars', e.target.value)}
+            className="min-h-[120px]"
+          />
+
+          <Textarea
+            label="Creative Direction"
+            placeholder="Details about graphic designs, color palettes, video editing styles..."
+            value={categoryDetails.creativeDirection || ''}
+            onChange={(e) => handleDetailFieldChange('socialMedia', 'creativeDirection', e.target.value)}
+          />
+
+          <Textarea
+            label="Caption Strategy"
+            placeholder="Hook strategies, call-to-actions, hashtag structures..."
+            value={categoryDetails.captionStrategy || ''}
+            onChange={(e) => handleDetailFieldChange('socialMedia', 'captionStrategy', e.target.value)}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Textarea
+              label="Community Management Notes"
+              placeholder="Comment replies, DM auto-responses, engagement tactics..."
+              value={categoryDetails.communityManagementNotes || ''}
+              onChange={(e) => handleDetailFieldChange('socialMedia', 'communityManagementNotes', e.target.value)}
+              className="min-h-[100px]"
+            />
+            <Textarea
+              label="Monthly Plan / Calendar Strategy"
+              placeholder="Scheduling workflow, content approval processes..."
+              value={categoryDetails.monthlyPlanCalendar || ''}
+              onChange={(e) => handleDetailFieldChange('socialMedia', 'monthlyPlanCalendar', e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+
+          <Textarea
+            label="Engagement Metrics Overview"
+            placeholder="e.g., +25% follower growth, average 5% engagement rate"
+            value={categoryDetails.engagementMetrics || ''}
+            onChange={(e) => handleDetailFieldChange('socialMedia', 'engagementMetrics', e.target.value)}
+            className="min-h-[80px]"
+          />
+
+          <Textarea
+            label="Top Performing Posts Details"
+            placeholder="Highlight 2-3 posts that went viral or got highest reach, with links/copy..."
+            value={categoryDetails.bestPerformingPosts || ''}
+            onChange={(e) => handleDetailFieldChange('socialMedia', 'bestPerformingPosts', e.target.value)}
+            className="min-h-[100px]"
+          />
+        </div>
+      )}
+
+      {categoryKey === 'automation' && (
+        <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+          <div className="border-b border-gray-light/40 pb-3">
+            <h2 className="text-lg font-semibold text-navy">Automation Fields</h2>
+            <p className="text-xs text-gray mt-0.5">Map Zapier/Make connections, trigger-action workflow steps, and business time-saved metrics.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <Input
+              label="Automation Trigger"
+              placeholder="e.g., Customer purchases on Shopify"
+              value={categoryDetails.trigger || ''}
+              onChange={(e) => handleDetailFieldChange('automation', 'trigger', e.target.value)}
+            />
+            <Input
+              label="Connected Tools / Integrations"
+              placeholder="e.g., ManyChat, Google Sheets, Make (comma separated)"
+              value={categoryDetails.toolsIntegrations || ''}
+              onChange={(e) => handleDetailFieldChange('automation', 'toolsIntegrations', e.target.value)}
+            />
+            <Input
+              label="Time Saved Estimation"
+              placeholder="e.g., 10 hours per week"
+              value={categoryDetails.timeSaved || ''}
+              onChange={(e) => handleDetailFieldChange('automation', 'timeSaved', e.target.value)}
+            />
+          </div>
+
+          <Textarea
+            label="Business Problem"
+            placeholder="What manual workflow needed to be automated? What was the bottleneck?"
+            value={categoryDetails.businessProblem || ''}
+            onChange={(e) => handleDetailFieldChange('automation', 'businessProblem', e.target.value)}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Textarea
+              label="Manual Workflow Before Automation"
+              placeholder="Steps employees had to perform manually..."
+              value={categoryDetails.manualWorkflowBefore || ''}
+              onChange={(e) => handleDetailFieldChange('automation', 'manualWorkflowBefore', e.target.value)}
+              className="min-h-[100px]"
+            />
+            <Textarea
+              label="Automation Architecture Goal"
+              placeholder="What was the targeted automated flow architecture?"
+              value={categoryDetails.automationGoal || ''}
+              onChange={(e) => handleDetailFieldChange('automation', 'automationGoal', e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+
+          <Textarea
+            label="Workflow Steps (Format: Step Name - Details, one per line)"
+            placeholder="Step 1 - Receive webhook from Shopify&#10;Step 2 - Filter purchases by category&#10;Step 3 - Add email to ActiveCampaign list&#10;Step 4 - Send coupon code in Telegram chat..."
+            value={categoryDetails.workflowSteps || ''}
+            onChange={(e) => handleDetailFieldChange('automation', 'workflowSteps', e.target.value)}
+            className="min-h-[140px]"
+          />
+
+          <Textarea
+            label="System Output / Output Result"
+            placeholder="Describe the final output, automated messages sent, or sheets created..."
+            value={categoryDetails.outputResult || ''}
+            onChange={(e) => handleDetailFieldChange('automation', 'outputResult', e.target.value)}
+          />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <Textarea
+              label="User Flow Context"
+              placeholder="How does the customer interface with this automation?"
+              value={categoryDetails.userFlow || ''}
+              onChange={(e) => handleDetailFieldChange('automation', 'userFlow', e.target.value)}
+              className="min-h-[100px]"
+            />
+            <Textarea
+              label="Error Handling &amp; Fallback Mechanisms"
+              placeholder="What happens if an API call fails? Email alerts, slack notifications, retries..."
+              value={categoryDetails.errorHandlingFallback || ''}
+              onChange={(e) => handleDetailFieldChange('automation', 'errorHandlingFallback', e.target.value)}
+              className="min-h-[100px]"
+            />
+          </div>
+
+          <Textarea
+            label="Business Impact Summary"
+            placeholder="Reduced manual errors by 100%, increased lead speed times..."
+            value={categoryDetails.businessImpact || ''}
+            onChange={(e) => handleDetailFieldChange('automation', 'businessImpact', e.target.value)}
+          />
+        </div>
+      )}
 
       {/* Section: Media */}
-      <div className={`bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5 ${showCoverImage ? '' : 'hidden'}`}>
+      <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
         <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
           Media
         </h2>
@@ -365,9 +886,43 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
 
       {/* Section: Project Gallery */}
       <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
-        <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
-          Project Gallery
-        </h2>
+        <div className="border-b border-gray-light/40 pb-3 md:flex justify-between items-center gap-4">
+          <h2 className="text-lg font-semibold text-navy">
+            Project Gallery
+          </h2>
+          {categoryKey && (
+            <span className="text-[10px] font-bold text-blue uppercase tracking-wider bg-blue/10 px-2 py-0.5 rounded">
+              Suggested Image Types Available
+            </span>
+          )}
+        </div>
+
+        {/* Suggested Image types uploader guidance card */}
+        {categoryKey === 'contentWriting' && (
+          <div className="p-3 bg-purple-50/50 border border-purple-100 rounded-xl text-purple-700 text-xs">
+            💡 <strong>Suggested visuals for Content Writing:</strong> Post/article screenshots, client content calendar overview, before/after copy comparisons, distribution analytics dashboard.
+          </div>
+        )}
+        {categoryKey === 'mediaBuying' && (
+          <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl text-blue-700 text-xs">
+            💡 <strong>Suggested visuals for Media Buying:</strong> Ads Manager dashboard screens (blur sensitive client info), visual performance reports, top ad creative grids, conversion graphs.
+          </div>
+        )}
+        {categoryKey === 'eventPlanning' && (
+          <div className="p-3 bg-amber-50/50 border border-amber-100 rounded-xl text-amber-700 text-xs">
+            💡 <strong>Suggested visuals for Event Planning:</strong> Event cover photo, venue details, behind-the-scenes layout sheets, print invitation cards, social coverage recaps, crowd group photos.
+          </div>
+        )}
+        {categoryKey === 'socialMedia' && (
+          <div className="p-3 bg-rose-50/50 border border-rose-100 rounded-xl text-rose-700 text-xs">
+            💡 <strong>Suggested visuals for Social Media:</strong> Feed designs, grid overview layouts, content calendar sheet, DM comment templates, profile screenshots, engagement reports.
+          </div>
+        )}
+        {categoryKey === 'automation' && (
+          <div className="p-3 bg-emerald-50/50 border border-emerald-100 rounded-xl text-emerald-700 text-xs">
+            💡 <strong>Suggested visuals for Automation:</strong> n8n/Make node diagram screenshot, before vs after flowchart, tools integration icons grid, system output logs.
+          </div>
+        )}
 
         {/* Existing Images */}
         {localGallery.length > 0 && (
@@ -446,56 +1001,29 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
         </div>
       </div>
 
-      {/* Section: Content */}
-      <div className={`bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5 ${showContentNotes ? '' : 'hidden'}`}>
-        <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
-          Content Details
-        </h2>
-
-        <Textarea id="content_writing_sample" name="content_writing_sample" label="Content Writing Sample" placeholder="Paste a sample of the content created for this project" defaultValue={item?.content_writing_sample || ''} />
-        <Textarea id="media_buying_notes" name="media_buying_notes" label="Media Buying Notes" placeholder="Ad spend, targeting, platform details, and strategy notes" defaultValue={item?.media_buying_notes || ''} />
-        <Textarea id="event_planning_notes" name="event_planning_notes" label="Event Planning Notes" placeholder="Event details, logistics, and planning notes" defaultValue={item?.event_planning_notes || ''} />
-      </div>
-
-      {/* Section: Results & Details */}
+      {/* Section: Common Case Study and Results Fields for Fallback/Details */}
       <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
-        <div className="flex justify-between items-center border-b border-gray-light/40 pb-3">
-          <h2 className="text-lg font-semibold text-navy">
-            Results &amp; Details
-          </h2>
-          {selectedLayout !== 'gallery' && (
-            <button
-              type="button"
-              onClick={handleLoadTemplate}
-              className="text-xs font-semibold text-blue hover:text-navy px-3 py-1.5 bg-blue/10 hover:bg-blue/20 rounded-lg transition-all cursor-pointer flex items-center gap-1"
-            >
-              ✨ Use Layout Template Outline
-            </button>
-          )}
-        </div>
-
+        <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
+          Results &amp; Full Case Study (Generic Fallbacks)
+        </h2>
         <Textarea 
           id="results" 
           name="results" 
-          label="Results &amp; Metrics" 
-          placeholder="Key results, KPIs, and measurable outcomes" 
+          label="Results &amp; Metrics Summary" 
+          placeholder="Summary metrics (used as fallback or additional info in templates)" 
           value={resultsValue}
           onChange={(e) => setResultsValue(e.target.value)}
         />
-        
         <Input id="tools_used" name="tools_used" label="Tools Used" placeholder="e.g., Meta Ads Manager, Google Analytics, ManyChat (comma separated)" defaultValue={item?.tools_used || ''} />
-        
-        <div className={showFullCaseStudy ? '' : 'hidden'}>
-          <Textarea 
-            id="full_case_study" 
-            name="full_case_study" 
-            label="Full Case Study" 
-            placeholder="Detailed case study write-up with background, approach, and outcomes" 
-            value={caseStudyValue}
-            onChange={(e) => setCaseStudyValue(e.target.value)}
-            className="min-h-[200px]" 
-          />
-        </div>
+        <Textarea 
+          id="full_case_study" 
+          name="full_case_study" 
+          label="Full Case Study Overview" 
+          placeholder="Detailed narrative write-up if layout template requires or as fallback" 
+          value={caseStudyValue}
+          onChange={(e) => setCaseStudyValue(e.target.value)}
+          className="min-h-[160px]" 
+        />
       </div>
 
       {/* Section: Status & Submit */}
@@ -516,6 +1044,9 @@ export default function ShowcaseForm({ item, existingGallery = [], action }: Sho
             <option value="published">Published — Visible on public site</option>
           </select>
         </div>
+
+        {/* Hidden field for category details JSON */}
+        <input type="hidden" name="category_json" value={JSON.stringify(detailsState)} />
 
         <div className="flex items-center gap-3 pt-2">
           <Button type="submit" disabled={isPending || isSubmitting} size="lg">

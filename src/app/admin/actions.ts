@@ -35,6 +35,9 @@ export async function createShowcaseItem(prevState: { error?: string; success?: 
       cover_image_url = publicUrl
     }
 
+    const categoryJson = formData.get('category_json') as string
+    const category_details = categoryJson ? JSON.parse(categoryJson) : {}
+
     const { data: item, error } = await supabase.from('showcase_items').insert({
       title,
       slug,
@@ -52,6 +55,7 @@ export async function createShowcaseItem(prevState: { error?: string; success?: 
       full_case_study: (formData.get('full_case_study') as string) || null,
       layout_format: (formData.get('layout_format') as string) || 'standard',
       status: (formData.get('status') as string) || 'draft',
+      category_details,
     }).select('id').single()
 
     if (error) {
@@ -144,6 +148,9 @@ export async function updateShowcaseItem(id: string, prevState: { error?: string
       cover_image_url = publicUrl
     }
 
+    const categoryJson = formData.get('category_json') as string
+    const category_details = categoryJson ? JSON.parse(categoryJson) : {}
+
     const { error } = await supabase.from('showcase_items').update({
       title,
       slug: slugify(title),
@@ -161,6 +168,7 @@ export async function updateShowcaseItem(id: string, prevState: { error?: string
       full_case_study: (formData.get('full_case_study') as string) || null,
       layout_format: (formData.get('layout_format') as string) || 'standard',
       status: (formData.get('status') as string) || 'draft',
+      category_details,
     }).eq('id', id)
 
     if (error) return { error: error.message }

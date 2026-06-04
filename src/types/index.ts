@@ -18,6 +18,96 @@ export interface ShowcaseItem {
   status: 'draft' | 'published';
   created_at: string;
   updated_at: string;
+  category_details?: CategoryDetails;
+}
+
+export interface CategoryDetails {
+  contentWriting?: ContentWritingDetails;
+  mediaBuying?: MediaBuyingDetails;
+  eventPlanning?: EventPlanningDetails;
+  socialMedia?: SocialMediaDetails;
+  automation?: AutomationDetails;
+}
+
+export interface ContentWritingDetails {
+  contentType?: string;
+  clientBrandType?: string;
+  targetAudience?: string;
+  contentGoal?: string;
+  toneOfVoice?: string;
+  keyMessage?: string;
+  writingSamples?: string;
+  beforeCopy?: string;
+  afterCopy?: string;
+  distributionChannel?: string;
+  performanceMetrics?: string;
+  ctaOutcome?: string;
+}
+
+export interface MediaBuyingDetails {
+  platform?: string;
+  campaignObjective?: string;
+  dateRange?: string;
+  totalSpend?: string;
+  impressions?: string;
+  reach?: string;
+  clicks?: string;
+  ctr?: string;
+  cpm?: string;
+  cpc?: string;
+  leadsMessagesPurchases?: string;
+  roas?: string;
+  audienceStrategy?: string;
+  creativeStrategy?: string;
+  optimizationApproach?: string;
+  reportingNotes?: string;
+}
+
+export interface EventPlanningDetails {
+  eventName?: string;
+  eventType?: string;
+  eventDate?: string;
+  venue?: string;
+  attendeeCount?: string;
+  organizerBrand?: string;
+  myResponsibilities?: string;
+  eventObjective?: string;
+  planningScope?: string;
+  timelineRunOfShow?: string;
+  vendorsPartners?: string;
+  deliverables?: string;
+  eventOutcome?: string;
+  challengesSolved?: string;
+}
+
+export interface SocialMediaDetails {
+  platform?: string;
+  campaignPageType?: string;
+  contentPillars?: string;
+  postingFrequency?: string;
+  contentFormats?: string;
+  creativeDirection?: string;
+  captionStrategy?: string;
+  communityManagementNotes?: string;
+  monthlyPlanCalendar?: string;
+  engagementMetrics?: string;
+  bestPerformingPosts?: string;
+  brandVoice?: string;
+}
+
+export interface AutomationDetails {
+  businessProblem?: string;
+  manualWorkflowBefore?: string;
+  automationGoal?: string;
+  toolsIntegrations?: string;
+  trigger?: string;
+  workflowSteps?: string;
+  outputResult?: string;
+  timeSaved?: string;
+  errorHandlingFallback?: string;
+  userFlow?: string;
+  screenshotsWorkflowDiagram?: string;
+  businessImpact?: string;
 }
 
 export interface Profile {

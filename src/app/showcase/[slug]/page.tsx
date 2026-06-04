@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { ShowcaseItem, GalleryImage } from "@/types";
-import StandardLayout from "@/components/showcase/StandardLayout";
-import GalleryLayout from "@/components/showcase/GalleryLayout";
-import CaseStudyLayout from "@/components/showcase/CaseStudyLayout";
-import MinimalLayout from "@/components/showcase/MinimalLayout";
+import ContentWritingTemplate from "@/components/showcase/templates/ContentWritingTemplate";
+import MediaBuyingTemplate from "@/components/showcase/templates/MediaBuyingTemplate";
+import EventPlanningTemplate from "@/components/showcase/templates/EventPlanningTemplate";
+import SocialMediaTemplate from "@/components/showcase/templates/SocialMediaTemplate";
+import AutomationTemplate from "@/components/showcase/templates/AutomationTemplate";
+import DefaultShowcaseTemplate from "@/components/showcase/templates/DefaultShowcaseTemplate";
 import ContactPopup from "@/components/showcase/ContactPopup";
 
 interface Props {
@@ -59,6 +61,23 @@ export default async function ShowcaseDetailPage({ params }: Props) {
 
   const gallery = (galleryImages || []) as GalleryImage[];
 
+  // Route layout template based on category
+  const cat = (project.category || "").toLowerCase().trim();
+
+  let TemplateComponent = DefaultShowcaseTemplate;
+
+  if (cat.includes("writing") || cat.includes("content")) {
+    TemplateComponent = ContentWritingTemplate;
+  } else if (cat.includes("buying") || cat.includes("media") || cat.includes("ad")) {
+    TemplateComponent = MediaBuyingTemplate;
+  } else if (cat.includes("event") || cat.includes("planning")) {
+    TemplateComponent = EventPlanningTemplate;
+  } else if (cat.includes("social") || cat.includes("media")) {
+    TemplateComponent = SocialMediaTemplate;
+  } else if (cat.includes("auto") || cat.includes("automation") || cat.includes("workflow")) {
+    TemplateComponent = AutomationTemplate;
+  }
+
   return (
     <div className="min-h-screen bg-bg relative">
       {/* Sticky Back Navigation */}
@@ -86,19 +105,8 @@ export default async function ShowcaseDetailPage({ params }: Props) {
         </div>
       </nav>
 
-      {/* Render selected layout */}
-      {project.layout_format === "gallery" && (
-        <GalleryLayout project={project} galleryImages={gallery} />
-      )}
-      {project.layout_format === "case-study" && (
-        <CaseStudyLayout project={project} galleryImages={gallery} />
-      )}
-      {project.layout_format === "minimal" && (
-        <MinimalLayout project={project} galleryImages={gallery} />
-      )}
-      {(project.layout_format === "standard" || !project.layout_format) && (
-        <StandardLayout project={project} galleryImages={gallery} />
-      )}
+      {/* Render Category Layout Template */}
+      <TemplateComponent project={project} galleryImages={gallery} />
 
       {/* Contact Popup */}
       <ContactPopup />
