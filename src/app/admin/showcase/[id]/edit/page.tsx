@@ -23,6 +23,12 @@ export default async function EditShowcasePage({ params }: Props) {
     notFound()
   }
 
+  const { data: galleryImages } = await supabase
+    .from('showcase_gallery')
+    .select('*')
+    .eq('showcase_id', id)
+    .order('sort_order', { ascending: true })
+
   const updateWithId = updateShowcaseItem.bind(null, id)
 
   return (
@@ -37,7 +43,7 @@ export default async function EditShowcasePage({ params }: Props) {
         <h1 className="text-2xl font-bold text-navy">Edit Showcase Project</h1>
         <p className="text-gray text-sm mt-1">Update &ldquo;{(item as ShowcaseItem).title}&rdquo;</p>
       </div>
-      <ShowcaseForm item={item as ShowcaseItem} action={updateWithId} />
+      <ShowcaseForm item={item as ShowcaseItem} existingGallery={galleryImages || []} action={updateWithId} />
     </div>
   )
 }

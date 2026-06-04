@@ -59,3 +59,26 @@ export const showcaseCategories = [
   'Social Media',
   'Automation',
 ]
+
+export const layoutFormats = [
+  {
+    value: 'standard',
+    label: 'Standard',
+    description: 'Cover hero + content sections with sidebar',
+  },
+  {
+    value: 'gallery',
+    label: 'Gallery',
+    description: 'Large image gallery focused layout',
+  },
+  {
+    value: 'case-study',
+    label: 'Case Study',
+    description: 'Full-width editorial with alternating sections',
+  },
+  {
+    value: 'minimal',
+    label: 'Minimal',
+    description: 'Clean, text-focused, single column',
+  },
+]

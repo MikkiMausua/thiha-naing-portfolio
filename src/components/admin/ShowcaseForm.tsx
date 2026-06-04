@@ -2,23 +2,34 @@
 
 import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import type { ShowcaseItem } from '@/types'
-import { showcaseCategories } from '@/lib/constants'
+import type { ShowcaseItem, GalleryImage } from '@/types'
+import { showcaseCategories, layoutFormats } from '@/lib/constants'
 import Input from '@/components/ui/Input'
 import Textarea from '@/components/ui/Textarea'
 import Button from '@/components/ui/Button'
 import Image from 'next/image'
+import { deleteGalleryImage } from '@/app/admin/actions'
 
 interface ShowcaseFormProps {
   item?: ShowcaseItem
+  existingGallery?: GalleryImage[]
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   action: (prevState: any, formData: FormData) => Promise<any>
 }
 
-export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
+export default function ShowcaseForm({ item, existingGallery = [], action }: ShowcaseFormProps) {
   const [state, formAction, isPending] = useActionState(action, null)
   const router = useRouter()
   const [clientError, setClientError] = useState<string | null>(null)
+
+  const [localGallery, setLocalGallery] = useState<GalleryImage[]>(existingGallery)
+  const [newGalleryFiles, setNewGalleryFiles] = useState<{ id: string; file: File; preview: string; caption: string }[]>([])
+  const [selectedLayout, setSelectedLayout] = useState<'standard' | 'gallery' | 'case-study' | 'minimal'>(item?.layout_format || 'standard')
+
+  // Sync state if existingGallery changes
+  useEffect(() => {
+    setLocalGallery(existingGallery)
+  }, [existingGallery])
 
   // Redirect on success
   useEffect(() => {
@@ -27,14 +38,77 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
     }
   }, [state, router])
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files) return
+    const files = Array.from(e.target.files)
+    
+    const newItems = files.map(file => ({
+      id: Math.random().toString(36).substr(2, 9),
+      file,
+      preview: URL.createObjectURL(file),
+      caption: ''
+    }))
+
+    setNewGalleryFiles(prev => [...prev, ...newItems])
+  }
+
+  const handleCaptionChange = (id: string, caption: string) => {
+    setNewGalleryFiles(prev => prev.map(item => item.id === id ? { ...item, caption } : item))
+  }
+
+  const handleRemoveNewImage = (id: string) => {
+    setNewGalleryFiles(prev => {
+      const target = prev.find(item => item.id === id)
+      if (target) URL.revokeObjectURL(target.preview)
+      return prev.filter(item => item.id !== id)
+    })
+  }
+
+  const handleDeleteExistingImage = async (imageId: string) => {
+    if (!confirm('Are you sure you want to delete this gallery image?')) return
+    const result = await deleteGalleryImage(imageId)
+    if (result.success) {
+      setLocalGallery(prev => prev.filter(img => img.id !== imageId))
+    } else {
+      setClientError('Failed to delete gallery image: ' + result.error)
+    }
+  }
+
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      newGalleryFiles.forEach(item => URL.revokeObjectURL(item.preview))
+    }
+  }, [newGalleryFiles])
+
   // Wrap formAction to validate file size before submitting
   const handleSubmit = (formData: FormData) => {
     setClientError(null)
-    const file = formData.get('cover_image') as File
-    if (file && file.size > 4 * 1024 * 1024) {
-      setClientError('Image must be under 4MB. Please compress or resize the image before uploading.')
+    
+    // Validate cover image size
+    const coverFile = formData.get('cover_image') as File
+    if (coverFile && coverFile.size > 4 * 1024 * 1024) {
+      setClientError('Cover image must be under 4MB. Please compress or resize the image before uploading.')
+      window.scrollTo({ top: 0, behavior: 'smooth' })
       return
     }
+
+    // Validate new gallery images size
+    for (const item of newGalleryFiles) {
+      if (item.file.size > 4 * 1024 * 1024) {
+        setClientError(`Gallery image "${item.file.name}" exceeds the 4MB limit.`)
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+        return
+      }
+    }
+
+    // Append layouts, new gallery images and captions
+    formData.set('layout_format', selectedLayout)
+    newGalleryFiles.forEach((item) => {
+      formData.append('gallery_images', item.file)
+      formData.append('gallery_captions', item.caption)
+    })
+
     formAction(formData)
   }
 
@@ -112,6 +186,43 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
         />
       </div>
 
+      {/* Section: Layout Format */}
+      <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+        <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
+          Layout Format
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+          {layoutFormats.map((layout) => {
+            const isSelected = selectedLayout === layout.value
+            return (
+              <button
+                key={layout.value}
+                type="button"
+                onClick={() => setSelectedLayout(layout.value as any)}
+                className={`flex flex-col text-left p-4 rounded-xl border-2 transition-all cursor-pointer ${
+                  isSelected
+                    ? 'border-blue bg-blue/5'
+                    : 'border-gray-light hover:border-gray'
+                }`}
+              >
+                <span className="font-semibold text-navy text-sm">{layout.label}</span>
+                <span className="text-xs text-gray mt-1 leading-normal">
+                  {layout.description}
+                </span>
+                <input
+                  type="radio"
+                  name="layout_format"
+                  value={layout.value}
+                  checked={isSelected}
+                  onChange={() => {}}
+                  className="sr-only"
+                />
+              </button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Section: Media */}
       <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
         <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
@@ -144,6 +255,89 @@ export default function ShowcaseForm({ item, action }: ShowcaseFormProps) {
           placeholder="https://www.facebook.com/..."
           defaultValue={item?.facebook_post_url || ''}
         />
+      </div>
+
+      {/* Section: Project Gallery */}
+      <div className="bg-white rounded-2xl border border-gray-light/60 p-6 space-y-5">
+        <h2 className="text-lg font-semibold text-navy border-b border-gray-light/40 pb-3">
+          Project Gallery
+        </h2>
+
+        {/* Existing Images */}
+        {localGallery.length > 0 && (
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium text-charcoal">Existing Gallery Images</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {localGallery.map((img) => (
+                <div key={img.id} className="relative group rounded-lg overflow-hidden border border-gray-light aspect-video bg-gray-50 flex flex-col justify-between">
+                  <div className="relative w-full flex-grow">
+                    <Image src={img.image_url} alt="Gallery image" fill className="object-cover" />
+                  </div>
+                  {img.caption && (
+                    <div className="p-1.5 text-xs text-charcoal bg-white truncate border-t border-gray-light">
+                      {img.caption}
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteExistingImage(img.id)}
+                    className="absolute top-1 right-1 p-1.5 bg-red-600 hover:bg-red-700 text-white rounded-full shadow transition-colors cursor-pointer"
+                    title="Delete Image"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Upload New Images */}
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-charcoal">Upload New Gallery Images</label>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileChange}
+            className="block w-full text-sm text-gray file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue/10 file:text-blue hover:file:bg-blue/20 file:cursor-pointer cursor-pointer"
+          />
+          <p className="text-xs text-gray">Upload multiple images (under 4MB each).</p>
+
+          {/* New Images Previews & Captions */}
+          {newGalleryFiles.length > 0 && (
+            <div className="space-y-3 pt-2">
+              <h3 className="text-sm font-medium text-charcoal">New Images to Upload</h3>
+              <div className="space-y-3">
+                {newGalleryFiles.map((item) => (
+                  <div key={item.id} className="flex gap-4 p-4 border border-gray-light/60 rounded-xl bg-bg items-center">
+                    <div className="relative w-24 h-16 rounded-lg overflow-hidden border border-gray-light flex-shrink-0">
+                      <Image src={item.preview} alt="New preview" fill className="object-cover" />
+                    </div>
+                    <div className="flex-grow">
+                      <Input
+                        placeholder="Image caption (optional)"
+                        value={item.caption}
+                        onChange={(e) => handleCaptionChange(item.id, e.target.value)}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveNewImage(item.id)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Section: Content */}

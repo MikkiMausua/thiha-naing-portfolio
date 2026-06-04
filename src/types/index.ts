@@ -14,6 +14,7 @@ export interface ShowcaseItem {
   results: string;
   tools_used: string;
   full_case_study: string;
+  layout_format: 'standard' | 'gallery' | 'case-study' | 'minimal';
   status: 'draft' | 'published';
   created_at: string;
   updated_at: string;
@@ -56,3 +57,14 @@ export interface BlogPost {
   created_at: string;
   updated_at: string;
 }
+
+export interface GalleryImage {
+  id: string;
+  showcase_id: string;
+  image_url: string;
+  caption: string | null;
+  sort_order: number;
+  created_at: string;
+}
+
+export type LayoutFormat = 'standard' | 'gallery' | 'case-study' | 'minimal';
