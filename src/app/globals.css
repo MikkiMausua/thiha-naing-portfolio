@@ -6,18 +6,18 @@
    ============================================ */
 
 @theme inline {
-  /* Color Palette */
-  --color-bg: #FAF9F6;
-  --color-navy: #1B2A4A;
-  --color-charcoal: #2D3436;
-  --color-blue: #4A6FA5;
-  --color-gray: #94A3B8;
-  --color-gray-light: #E2E8F0;
+  /* Color Palette - Deep Purple Gradient Theme */
+  --color-bg: #0B0514;
+  --color-navy: #240046; /* Kept dark for Hero background and contrast */
+  --color-charcoal: #E0C6FF; /* Text color, light purple */
+  --color-blue: #7B2CBF;
+  --color-gray: #9D4EDD;
+  --color-gray-light: #3C096C;
   --color-white: #FFFFFF;
-  --color-accent: #6366F1;
+  --color-accent: #C77DFF;
 
   /* Typography */
-  --font-heading: 'Inter', system-ui, sans-serif;
+  --font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-sans: 'Inter', system-ui, sans-serif;
 }
@@ -32,16 +32,18 @@ html {
 }
 
 body {
-  background-color: var(--color-bg);
+  background: linear-gradient(135deg, #0B0514 0%, #1A0B2E 50%, #240046 100%);
+  background-attachment: fixed;
   color: var(--color-charcoal);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
 }
 
 ::selection {
-  background-color: var(--color-blue);
-  color: white;
+  background-color: var(--color-accent);
+  color: #10002B;
 }
 
 /* ============================================
@@ -206,17 +208,17 @@ body {
    ============================================ */
 
 .glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(60, 9, 108, 0.2);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(199, 125, 255, 0.15);
 }
 
 .glass-dark {
-  background: rgba(27, 42, 74, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(16, 0, 43, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(157, 78, 221, 0.2);
 }
 
 /* ============================================
@@ -226,7 +228,7 @@ body {
 .section-heading {
   font-size: 2rem;
   font-weight: 700;
-  color: var(--color-navy);
+  color: var(--color-white);
   text-align: center;
   margin-bottom: 1rem;
 }
@@ -283,7 +285,7 @@ body {
 .prose h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-navy);
+  color: var(--color-white);
   margin-top: 2rem;
   margin-bottom: 1rem;
 }
@@ -291,7 +293,7 @@ body {
 .prose h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-navy);
+  color: var(--color-white);
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
 }
@@ -317,5 +319,5 @@ body {
 }
 
 .prose a:hover {
-  color: var(--color-navy);
+  color: var(--color-white);
 }

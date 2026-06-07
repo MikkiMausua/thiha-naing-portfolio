@@ -10,8 +10,8 @@ export default function Card({ children, className, hover = false }: CardProps) 
   return (
     <div
       className={cn(
-        'bg-white rounded-2xl border border-gray-light/60 p-6',
-        hover && 'transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-blue/20',
+        'glass-dark rounded-2xl border border-white/10 p-6',
+        hover && 'transition-all duration-300 hover:shadow-lg hover:shadow-accent/20 hover:-translate-y-1 hover:border-accent/50',
         className
       )}
     >

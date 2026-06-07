@@ -31,7 +31,7 @@ export default function Navbar() {
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-light/40'
+          ? 'glass-dark shadow-sm border-b border-white/10'
           : 'bg-transparent'
       }`}
     >
@@ -40,7 +40,7 @@ export default function Navbar() {
           {/* Logo */}
           <a
             href="#"
-            className="text-xl font-bold text-navy tracking-tight transition-colors duration-200 hover:text-blue"
+            className="text-xl font-bold text-white tracking-tight transition-colors duration-200 hover:text-accent"
           >
             Thiha Naing
           </a>
@@ -51,7 +51,7 @@ export default function Navbar() {
               <a
                 key={link.href}
                 href={link.href}
-                className="px-4 py-2 text-sm font-medium text-charcoal/80 rounded-lg transition-colors duration-200 hover:text-navy hover:bg-navy/5"
+                className="px-4 py-2 text-sm font-medium text-white/80 rounded-lg transition-colors duration-200 hover:text-white hover:bg-white/10"
               >
                 {link.label}
               </a>
@@ -62,7 +62,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen(!mobileOpen)}
-            className="md:hidden relative w-10 h-10 flex items-center justify-center rounded-lg text-charcoal hover:bg-gray-light/50 transition-colors duration-200 cursor-pointer"
+            className="md:hidden relative w-10 h-10 flex items-center justify-center rounded-lg text-white hover:bg-white/10 transition-colors duration-200 cursor-pointer"
             aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
           >
             <svg
@@ -100,13 +100,13 @@ export default function Navbar() {
       >
         {/* Backdrop */}
         <div
-          className="absolute inset-0 bg-navy/20 backdrop-blur-sm"
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
           onClick={() => setMobileOpen(false)}
         />
 
         {/* Menu Panel */}
         <div
-          className={`absolute inset-0 bg-white/98 backdrop-blur-xl flex flex-col items-center justify-center transition-transform duration-300 ${
+          className={`absolute inset-0 glass-dark flex flex-col items-center justify-center transition-transform duration-300 ${
             mobileOpen ? 'translate-y-0' : '-translate-y-full'
           }`}
         >
@@ -114,7 +114,7 @@ export default function Navbar() {
           <button
             type="button"
             onClick={() => setMobileOpen(false)}
-            className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-lg text-charcoal hover:bg-gray-light/50 transition-colors duration-200 cursor-pointer"
+            className="absolute top-5 right-5 w-10 h-10 flex items-center justify-center rounded-lg text-white hover:bg-white/10 transition-colors duration-200 cursor-pointer"
             aria-label="Close menu"
           >
             <svg
@@ -138,7 +138,7 @@ export default function Navbar() {
                 key={link.href}
                 href={link.href}
                 onClick={() => setMobileOpen(false)}
-                className="px-6 py-3 text-lg font-medium text-charcoal rounded-xl transition-colors duration-200 hover:text-navy hover:bg-navy/5"
+                className="px-6 py-3 text-lg font-medium text-white rounded-xl transition-colors duration-200 hover:text-accent hover:bg-white/10"
               >
                 {link.label}
               </a>

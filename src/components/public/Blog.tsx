@@ -12,8 +12,8 @@ export default function Blog({ posts }: { posts: BlogPost[] }) {
       <section id="blog" className="py-20 md:py-28 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-navy mb-4">Blog</h2>
-            <div className="w-15 h-0.75 bg-blue mx-auto" />
+            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Blog</h2>
+            <div className="w-15 h-0.75 bg-accent mx-auto" />
           </div>
           <EmptyState
             title="Blog posts coming soon"
@@ -29,9 +29,9 @@ export default function Blog({ posts }: { posts: BlogPost[] }) {
       <div className="max-w-6xl mx-auto">
         {/* Section Heading */}
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-navy mb-4">Blog</h2>
-          <div className="w-15 h-0.75 bg-blue mx-auto mb-4" />
-          <p className="text-gray max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Blog</h2>
+          <div className="w-15 h-0.75 bg-accent mx-auto mb-4" />
+          <p className="text-white/70 max-w-2xl mx-auto">
             Insights, strategies, and lessons from the world of digital marketing.
           </p>
         </div>
@@ -42,7 +42,7 @@ export default function Blog({ posts }: { posts: BlogPost[] }) {
             <Link
               key={post.id}
               href={`/blog/${post.slug}`}
-              className="group bg-white rounded-2xl border border-gray-light/60 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-blue/20"
+              className="group glass-dark rounded-2xl border border-white/10 overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-accent/50 hover:shadow-accent/20"
             >
               {/* Cover Image */}
               <div className="aspect-[16/10] relative overflow-hidden">
@@ -71,7 +71,7 @@ export default function Blog({ posts }: { posts: BlogPost[] }) {
                     {post.tags.split(',').slice(0, 3).map((tag) => (
                       <span
                         key={tag.trim()}
-                        className="inline-block px-2 py-0.5 bg-blue/10 text-blue text-[11px] font-medium rounded-full"
+                        className="inline-block px-2 py-0.5 bg-accent/20 text-accent text-[11px] font-medium rounded-full"
                       >
                         {tag.trim()}
                       </span>
@@ -80,19 +80,19 @@ export default function Blog({ posts }: { posts: BlogPost[] }) {
                 )}
 
                 {/* Title */}
-                <h3 className="text-lg font-semibold text-navy line-clamp-2 group-hover:text-blue transition-colors">
+                <h3 className="text-lg font-semibold text-white line-clamp-2 group-hover:text-accent transition-colors">
                   {post.title}
                 </h3>
 
                 {/* Excerpt */}
                 {post.excerpt && (
-                  <p className="text-sm text-gray mt-2 line-clamp-2">{post.excerpt}</p>
+                  <p className="text-sm text-white/70 mt-2 line-clamp-2">{post.excerpt}</p>
                 )}
 
                 {/* Date + Read More */}
-                <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-light/40">
-                  <span className="text-xs text-gray">{formatDate(post.created_at)}</span>
-                  <span className="text-sm font-medium text-blue group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                <div className="flex items-center justify-between mt-4 pt-3 border-t border-white/10">
+                  <span className="text-xs text-white/60">{formatDate(post.created_at)}</span>
+                  <span className="text-sm font-medium text-accent group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
                     Read More
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
