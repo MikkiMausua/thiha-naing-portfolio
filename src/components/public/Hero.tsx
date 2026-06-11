@@ -5,53 +5,62 @@ import { siteConfig } from '@/lib/constants'
 export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* Animated Gradient Background */}
-      <div className="absolute inset-0 bg-navy">
-        <div className="absolute inset-0 animate-gradient-shift bg-[length:400%_400%] bg-gradient-to-br from-navy via-blue to-indigo-900" />
+      {/* Dark Gradient Background */}
+      <div className="absolute inset-0 bg-[#0A0A10]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A10] via-[#12121E] to-[#0F1520]" />
       </div>
 
+      {/* Subtle Grid Pattern */}
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+          backgroundSize: '60px 60px',
+        }}
+      />
+
       {/* Floating Decorative Orbs */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full bg-gradient-to-br from-blue/30 to-indigo-500/20 blur-3xl opacity-20 animate-float" />
-      <div className="absolute bottom-1/3 right-1/4 w-96 h-96 rounded-full bg-gradient-to-tl from-indigo-400/25 to-blue/15 blur-3xl opacity-15 animate-float-delayed" />
-      <div className="absolute top-1/2 right-1/3 w-56 h-56 rounded-full bg-gradient-to-r from-white/10 to-blue/10 blur-3xl opacity-20 animate-float-slow" />
+      <div className="absolute top-1/4 left-1/5 w-80 h-80 rounded-full bg-gradient-to-br from-accent/8 to-blue/5 blur-3xl animate-float" />
+      <div className="absolute bottom-1/3 right-1/5 w-96 h-96 rounded-full bg-gradient-to-tl from-blue/6 to-accent/4 blur-3xl animate-float-delayed" />
+      <div className="absolute top-1/2 right-1/3 w-64 h-64 rounded-full bg-gradient-to-r from-white/3 to-accent/3 blur-3xl animate-float-slow" />
 
       {/* Content */}
       <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center pt-20">
         {/* Small Decorator */}
-        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/10 mb-8">
+        <div className="opacity-0 animate-fade-in-up inline-flex items-center gap-2 px-5 py-2 rounded-full glass border border-white/10 mb-8">
           <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-sm text-white/70 font-medium">Available for new projects</span>
+          <span className="text-sm text-white/60 font-medium tracking-wide">Available for new projects</span>
         </div>
 
         {/* Main Heading */}
-        <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 tracking-tight">
+        <h1 className="opacity-0 animate-text-reveal delay-200 text-5xl md:text-7xl lg:text-8xl font-bold text-white mb-6 tracking-tight">
           {siteConfig.name}
         </h1>
 
-        {/* Subtitle */}
-        <p className="text-xl md:text-2xl text-white/80 font-medium mb-4">
+        {/* Subtitle with gradient */}
+        <p className="opacity-0 animate-text-reveal delay-400 text-xl md:text-2xl font-medium mb-4 text-gradient-gold">
           {siteConfig.title}
         </p>
 
         {/* Tagline */}
-        <p className="text-lg text-white/60 max-w-2xl mx-auto mb-10 leading-relaxed">
+        <p className="opacity-0 animate-fade-in-up delay-500 text-lg text-white/50 max-w-2xl mx-auto mb-12 leading-relaxed">
           {siteConfig.description.split('.')[0] + '.'}
         </p>
 
         {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="opacity-0 animate-fade-in-up delay-600 flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
             href="#showcase"
-            className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg bg-white text-navy font-semibold text-base transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-white/20 hover:-translate-y-0.5"
+            className="group inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-accent text-[#0F0F14] font-semibold text-base transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-0.5"
           >
             View My Work
-            <svg className="w-4 h-4 ml-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <svg className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
             </svg>
           </a>
           <a
             href="#contact"
-            className="inline-flex items-center justify-center px-8 py-3.5 rounded-lg border-2 border-white/30 text-white font-semibold text-base transition-all duration-300 hover:bg-white/10 hover:border-white/50 hover:-translate-y-0.5"
+            className="inline-flex items-center justify-center px-8 py-3.5 rounded-xl border border-white/15 text-white font-semibold text-base transition-all duration-300 hover:bg-white/5 hover:border-white/30 hover:-translate-y-0.5"
           >
             Get In Touch
           </a>
@@ -59,56 +68,23 @@ export default function Hero() {
       </div>
 
       {/* Bottom Fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-bg to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-bg to-transparent" />
 
       {/* CSS Animations */}
       <style jsx>{`
-        @keyframes gradient-shift {
-          0%, 100% {
-            background-position: 0% 50%;
-          }
-          25% {
-            background-position: 100% 50%;
-          }
-          50% {
-            background-position: 100% 100%;
-          }
-          75% {
-            background-position: 0% 100%;
-          }
-        }
         @keyframes float {
-          0%, 100% {
-            transform: translateY(0) translateX(0);
-          }
-          33% {
-            transform: translateY(-20px) translateX(10px);
-          }
-          66% {
-            transform: translateY(10px) translateX(-10px);
-          }
+          0%, 100% { transform: translateY(0) translateX(0); }
+          33% { transform: translateY(-20px) translateX(10px); }
+          66% { transform: translateY(10px) translateX(-10px); }
         }
         @keyframes float-delayed {
-          0%, 100% {
-            transform: translateY(0) translateX(0);
-          }
-          33% {
-            transform: translateY(15px) translateX(-15px);
-          }
-          66% {
-            transform: translateY(-25px) translateX(5px);
-          }
+          0%, 100% { transform: translateY(0) translateX(0); }
+          33% { transform: translateY(15px) translateX(-15px); }
+          66% { transform: translateY(-25px) translateX(5px); }
         }
         @keyframes float-slow {
-          0%, 100% {
-            transform: translateY(0) translateX(0);
-          }
-          50% {
-            transform: translateY(-30px) translateX(15px);
-          }
-        }
-        .animate-gradient-shift {
-          animation: gradient-shift 15s ease infinite;
+          0%, 100% { transform: translateY(0) translateX(0); }
+          50% { transform: translateY(-30px) translateX(15px); }
         }
         .animate-float {
           animation: float 8s ease-in-out infinite;

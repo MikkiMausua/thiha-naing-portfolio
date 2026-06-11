@@ -24,7 +24,7 @@ export default function Showcase({ items }: ShowcaseProps) {
         {/* Section Heading */}
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Showcase</h2>
-          <div className="w-[60px] h-[3px] bg-accent mx-auto" />
+          <div className="w-[60px] h-[3px] bg-gradient-to-r from-accent to-blue mx-auto" />
         </div>
 
         {items.length === 0 ? (
@@ -41,10 +41,10 @@ export default function Showcase({ items }: ShowcaseProps) {
                   key={cat}
                   type="button"
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 cursor-pointer ${
+                  className={`px-5 py-2 rounded-full text-sm font-medium transition-all duration-300 cursor-pointer ${
                     activeCategory === cat
-                      ? 'bg-accent text-white shadow-sm shadow-accent/20 border border-accent'
-                      : 'glass border border-white/10 text-white/80 hover:bg-white/10 hover:border-white/30 hover:text-white'
+                      ? 'bg-accent text-[#0F0F14] shadow-md shadow-accent/20'
+                      : 'text-white/50 border border-white/8 hover:text-white hover:bg-white/5 hover:border-white/15'
                   }`}
                 >
                   {cat}
@@ -61,7 +61,7 @@ export default function Showcase({ items }: ShowcaseProps) {
 
             {filteredItems.length === 0 && (
               <div className="text-center py-16">
-                <p className="text-white/60">No projects found in this category.</p>
+                <p className="text-white/40">No projects found in this category.</p>
               </div>
             )}
           </>

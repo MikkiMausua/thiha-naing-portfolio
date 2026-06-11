@@ -81,11 +81,11 @@ export default async function ShowcaseDetailPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-bg relative">
       {/* Sticky Back Navigation */}
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-gray-light/40">
+      <nav className="sticky top-0 z-40 glass-dark border-b border-white/5">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <Link
             href="/#showcase"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-blue hover:text-navy transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-white/60 hover:text-accent transition-colors duration-300 cursor-pointer"
           >
             <svg
               className="w-4 h-4"

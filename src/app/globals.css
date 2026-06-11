@@ -2,21 +2,19 @@
 
 /* ============================================
    Design System — Thiha Naing Portfolio
-   Premium Minimalist Personal Brand
+   Premium Dark Slate + Gold Accent
    ============================================ */
 
 @theme inline {
-  /* Color Palette - Deep Purple Gradient Theme */
-  --color-bg: #0B0514;
-  --color-navy: #240046; /* Kept dark for Hero background and contrast */
-  --color-charcoal: #E0C6FF; /* Text color, light purple */
-  --color-blue: #7B2CBF;
-  --color-gray: #9D4EDD;
-  --color-gray-light: #3C096C;
+  --color-bg: #0F0F14;
+  --color-navy: #161621;
+  --color-charcoal: #CBD5E1;
+  --color-blue: #4ECDC4;
+  --color-gray: #64748B;
+  --color-gray-light: #1E1E2E;
   --color-white: #FFFFFF;
-  --color-accent: #C77DFF;
+  --color-accent: #D4A853;
 
-  /* Typography */
   --font-heading: 'Outfit', 'Inter', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-sans: 'Inter', system-ui, sans-serif;
@@ -32,8 +30,7 @@ html {
 }
 
 body {
-  background: linear-gradient(135deg, #0B0514 0%, #1A0B2E 50%, #240046 100%);
-  background-attachment: fixed;
+  background-color: var(--color-bg);
   color: var(--color-charcoal);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -43,7 +40,7 @@ body {
 
 ::selection {
   background-color: var(--color-accent);
-  color: #10002B;
+  color: #0F0F14;
 }
 
 /* ============================================
@@ -51,7 +48,7 @@ body {
    ============================================ */
 
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
@@ -60,7 +57,7 @@ body {
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-gray-light);
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -74,7 +71,7 @@ body {
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(24px);
+    transform: translateY(30px);
   }
   to {
     opacity: 1;
@@ -83,18 +80,14 @@ body {
 }
 
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes slideInRight {
   from {
     opacity: 0;
-    transform: translateX(24px);
+    transform: translateX(30px);
   }
   to {
     opacity: 1;
@@ -105,7 +98,7 @@ body {
 @keyframes slideInLeft {
   from {
     opacity: 0;
-    transform: translateX(-24px);
+    transform: translateX(-30px);
   }
   to {
     opacity: 1;
@@ -132,38 +125,58 @@ body {
 }
 
 @keyframes pulse-slow {
-  0%, 100% {
-    opacity: 0.15;
-  }
-  50% {
-    opacity: 0.25;
-  }
+  0%, 100% { opacity: 0.15; }
+  50% { opacity: 0.3; }
 }
 
 @keyframes gradient-shift {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: -200% 0;
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(212, 168, 83, 0.1); }
+  50% { box-shadow: 0 0 40px rgba(212, 168, 83, 0.2); }
+}
+
+@keyframes borderGlow {
+  0%, 100% { border-color: rgba(212, 168, 83, 0.1); }
+  50% { border-color: rgba(212, 168, 83, 0.3); }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
   }
-  100% {
-    background-position: 200% 0;
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes textReveal {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
   }
 }
 
 /* Animation utility classes */
 .animate-fade-in-up {
-  animation: fadeInUp 0.6s ease-out forwards;
+  animation: fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-fade-in {
@@ -171,11 +184,11 @@ body {
 }
 
 .animate-slide-in-right {
-  animation: slideInRight 0.6s ease-out forwards;
+  animation: slideInRight 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-slide-in-left {
-  animation: slideInLeft 0.6s ease-out forwards;
+  animation: slideInLeft 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-float {
@@ -195,6 +208,22 @@ body {
   animation: gradient-shift 8s ease infinite;
 }
 
+.animate-glow {
+  animation: glow 3s ease-in-out infinite;
+}
+
+.animate-border-glow {
+  animation: borderGlow 3s ease-in-out infinite;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-text-reveal {
+  animation: textReveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 /* Stagger animation delays */
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }
@@ -202,23 +231,32 @@ body {
 .delay-400 { animation-delay: 400ms; }
 .delay-500 { animation-delay: 500ms; }
 .delay-600 { animation-delay: 600ms; }
+.delay-700 { animation-delay: 700ms; }
+.delay-800 { animation-delay: 800ms; }
 
 /* ============================================
    Glassmorphism
    ============================================ */
 
 .glass {
-  background: rgba(60, 9, 108, 0.2);
+  background: rgba(30, 30, 46, 0.5);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(199, 125, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .glass-dark {
-  background: rgba(16, 0, 43, 0.6);
+  background: rgba(15, 15, 20, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: linear-gradient(135deg, rgba(30, 30, 46, 0.6) 0%, rgba(22, 22, 33, 0.8) 100%);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(157, 78, 221, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* ============================================
@@ -242,7 +280,7 @@ body {
 .section-divider {
   width: 60px;
   height: 3px;
-  background: var(--color-blue);
+  background: linear-gradient(90deg, var(--color-accent), var(--color-blue));
   margin: 0 auto 3rem;
   border-radius: 2px;
 }
@@ -319,5 +357,23 @@ body {
 }
 
 .prose a:hover {
-  color: var(--color-white);
+  color: var(--color-accent);
+}
+
+/* ============================================
+   Premium Text Gradient
+   ============================================ */
+
+.text-gradient {
+  background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.text-gradient-gold {
+  background: linear-gradient(135deg, #D4A853 0%, #F0D78C 50%, #D4A853 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
