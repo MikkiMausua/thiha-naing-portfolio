@@ -36,7 +36,7 @@ export default function ContentWritingTemplate({ project, galleryImages }: Conte
           )}
         </div>
         {project.my_role && (
-          <div className="mt-4 md:mt-0 flex-shrink-0 bg-bg px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
+          <div className="mt-4 md:mt-0 flex-shrink-0 bg-slate-50 px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
             <span className="text-[10px] font-semibold text-gray uppercase tracking-wider block">
               My Role
             </span>
@@ -78,7 +78,7 @@ export default function ContentWritingTemplate({ project, galleryImages }: Conte
           {/* Writing Samples */}
           {details.writingSamples && (
             <SectionCard title="Writing Sample / Copy">
-              <div className="bg-bg/40 p-6 rounded-2xl border border-gray-light/40 text-charcoal whitespace-pre-wrap font-mono text-sm leading-relaxed max-h-[400px] overflow-y-auto">
+              <div className="bg-slate-50 p-6 rounded-2xl border border-gray-light/40 text-charcoal whitespace-pre-wrap font-mono text-sm leading-relaxed max-h-[400px] overflow-y-auto">
                 {details.writingSamples}
               </div>
             </SectionCard>

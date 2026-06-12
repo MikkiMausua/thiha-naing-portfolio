@@ -6,8 +6,8 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Dark Gradient Background */}
-      <div className="absolute inset-0 bg-[#0A0A10]">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#0A0A10] via-[#12121E] to-[#0F1520]" />
+      <div className="absolute inset-0 bg-[#0E0E16]">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#0E0E16] via-[#161625] to-[#0F1520]" />
       </div>
 
       {/* Subtle Grid Pattern */}
@@ -51,7 +51,7 @@ export default function Hero() {
         <div className="opacity-0 animate-fade-in-up delay-600 flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
             href="#showcase"
-            className="group inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-accent text-[#0F0F14] font-semibold text-base transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-0.5"
+            className="group inline-flex items-center justify-center px-8 py-3.5 rounded-xl bg-accent text-[#13131A] font-semibold text-base transition-all duration-300 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-0.5"
           >
             View My Work
             <svg className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-y-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

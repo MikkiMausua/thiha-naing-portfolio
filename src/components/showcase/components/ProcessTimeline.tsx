@@ -51,7 +51,7 @@ export default function ProcessTimeline({ title, steps }: ProcessTimelineProps) 
             <span className="absolute -left-[31px] top-1 flex items-center justify-center w-4 h-4 rounded-full bg-blue text-white ring-4 ring-white border-2 border-white">
               <span className="w-1.5 h-1.5 rounded-full bg-white" />
             </span>
-            <div className="bg-bg p-4 rounded-xl border border-gray-light/40">
+            <div className="bg-slate-50 p-4 rounded-xl border border-gray-light/40">
               <h4 className="font-bold text-navy text-sm">{step.title}</h4>
               {step.desc && (
                 <p className="text-xs text-charcoal/80 mt-1 leading-relaxed whitespace-pre-wrap">

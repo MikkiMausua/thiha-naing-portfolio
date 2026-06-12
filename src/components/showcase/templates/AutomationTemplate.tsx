@@ -37,7 +37,7 @@ export default function AutomationTemplate({ project, galleryImages }: Automatio
           )}
         </div>
         {project.my_role && (
-          <div className="mt-4 md:mt-0 flex-shrink-0 bg-bg px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
+          <div className="mt-4 md:mt-0 flex-shrink-0 bg-slate-50 px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
             <span className="text-[10px] font-semibold text-gray uppercase tracking-wider block">
               Workflow Lead
             </span>

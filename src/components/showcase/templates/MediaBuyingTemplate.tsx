@@ -50,7 +50,7 @@ export default function MediaBuyingTemplate({ project, galleryImages }: MediaBuy
           )}
         </div>
         {project.my_role && (
-          <div className="mt-4 md:mt-0 flex-shrink-0 bg-bg px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
+          <div className="mt-4 md:mt-0 flex-shrink-0 bg-slate-50 px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
             <span className="text-[10px] font-semibold text-gray uppercase tracking-wider block">
               My Role
             </span>
@@ -61,7 +61,7 @@ export default function MediaBuyingTemplate({ project, galleryImages }: MediaBuy
 
       {/* KPI dashboard grid cards */}
       {kpiItems.length > 0 && (
-        <section className="bg-bg/40 p-6 rounded-3xl border border-gray-light/50">
+        <section className="bg-slate-50 p-6 rounded-3xl border border-gray-light/50">
           <h2 className="text-sm font-bold text-navy uppercase tracking-wider mb-4">
             Campaign Performance Metrics
           </h2>

@@ -40,7 +40,7 @@ export default function SocialMediaTemplate({ project, galleryImages }: SocialMe
           )}
         </div>
         {project.my_role && (
-          <div className="mt-4 md:mt-0 flex-shrink-0 bg-bg px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
+          <div className="mt-4 md:mt-0 flex-shrink-0 bg-slate-50 px-6 py-4 rounded-2xl border border-gray-light/40 text-center md:text-right">
             <span className="text-[10px] font-semibold text-gray uppercase tracking-wider block">
               My Role
             </span>
@@ -88,7 +88,7 @@ export default function SocialMediaTemplate({ project, galleryImages }: SocialMe
           {/* Social post examples or caption guidelines */}
           {details.bestPerformingPosts && (
             <SectionCard title="Top Performing Content Samples">
-              <div className="bg-bg/40 p-6 rounded-2xl border border-gray-light/40 text-charcoal text-sm leading-relaxed whitespace-pre-wrap">
+              <div className="bg-slate-50 p-6 rounded-2xl border border-gray-light/40 text-charcoal text-sm leading-relaxed whitespace-pre-wrap">
                 {details.bestPerformingPosts}
               </div>
             </SectionCard>
@@ -103,7 +103,7 @@ export default function SocialMediaTemplate({ project, galleryImages }: SocialMe
                   const title = parts[0]?.trim() || `Pillar ${idx + 1}`
                   const desc = parts.slice(1).join('-').trim()
                   return (
-                    <div key={idx} className="bg-bg/30 p-4 rounded-xl border border-gray-light/40">
+                    <div key={idx} className="bg-slate-50 p-4 rounded-xl border border-gray-light/40">
                       <h4 className="font-bold text-navy text-xs uppercase tracking-wider">{title}</h4>
                       {desc && <p className="text-xs text-charcoal/80 mt-1 leading-relaxed">{desc}</p>}
                     </div>

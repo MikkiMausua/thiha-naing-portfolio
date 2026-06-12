@@ -2,16 +2,19 @@
 
 /* ============================================
    Design System — Thiha Naing Portfolio
-   Premium Dark Slate + Gold Accent
+   Premium Dark + Gold/Teal Accent
    ============================================ */
 
 @theme inline {
-  --color-bg: #0F0F14;
-  --color-navy: #161621;
-  --color-charcoal: #CBD5E1;
+  /* Background: slightly lighter dark (not pitch black) */
+  --color-bg: #13131A;
+  /* navy/charcoal: dark values that work as TEXT on white showcase cards */
+  --color-navy: #1E293B;
+  --color-charcoal: #334155;
+  /* Accents */
   --color-blue: #4ECDC4;
   --color-gray: #64748B;
-  --color-gray-light: #1E1E2E;
+  --color-gray-light: #E2E8F0;
   --color-white: #FFFFFF;
   --color-accent: #D4A853;
 
@@ -31,7 +34,8 @@ html {
 
 body {
   background-color: var(--color-bg);
-  color: var(--color-charcoal);
+  /* Body text uses a fixed light color for the dark main pages */
+  color: #CBD5E1;
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -40,7 +44,7 @@ body {
 
 ::selection {
   background-color: var(--color-accent);
-  color: #0F0F14;
+  color: #13131A;
 }
 
 /* ============================================
@@ -56,7 +60,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-gray-light);
+  background: #2D2D3F;
   border-radius: 3px;
 }
 
@@ -246,7 +250,7 @@ body {
 }
 
 .glass-dark {
-  background: rgba(15, 15, 20, 0.7);
+  background: rgba(19, 19, 26, 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.05);
@@ -323,7 +327,7 @@ body {
 .prose h2 {
   font-size: 1.5rem;
   font-weight: 700;
-  color: var(--color-white);
+  color: var(--color-navy);
   margin-top: 2rem;
   margin-bottom: 1rem;
 }
@@ -331,7 +335,7 @@ body {
 .prose h3 {
   font-size: 1.25rem;
   font-weight: 600;
-  color: var(--color-white);
+  color: var(--color-navy);
   margin-top: 1.5rem;
   margin-bottom: 0.75rem;
 }
